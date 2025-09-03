@@ -2,7 +2,7 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import dynamic from 'next/dynamic';
-import { Layout, Menu, Avatar, Space, Typography, Button } from 'antd';
+import { Layout, Menu, Avatar, Typography, Button } from 'antd';
 import {
   HomeOutlined,
   UserOutlined,
@@ -10,19 +10,14 @@ import {
   BellOutlined,
   PlusCircleOutlined,
   TeamOutlined,
-  DatabaseOutlined,
-  LeftOutlined,
-  RightOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { RightPanel } from './RightPanel';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useMediaQuery } from 'react-responsive';
 import Image from 'next/image';
 
-const { Content, Sider } = Layout;
+const { Content } = Layout;
 const { Text } = Typography;
 
 const WalletMultiButton = dynamic(
@@ -121,11 +116,6 @@ const menuItems = [
     label: 'Following',
   },
   {
-    key: '/knowledge-base',
-    icon: <DatabaseOutlined />,
-    label: 'Knowledge Base',
-  },
-  {
     key: '/create',
     icon: <PlusCircleOutlined />,
     label: 'Create Post',
@@ -133,22 +123,10 @@ const menuItems = [
 ];
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
-  const [collapsed, setCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const { publicKey } = useWallet();
   const { isAuthenticated, walletAddress } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.matchMedia('(max-width: 768px)').matches);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Update menu items to include wallet address in profile link
   const getMenuItems = () => {
@@ -222,121 +200,21 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   );
 
   return (
-    <Layout style={{ minHeight: '100vh', maxWidth: '1265px', margin: '0 auto', display: 'flex', flexDirection: 'row' }}>
-      {isMobile && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          padding: '12px',
-          background: '#fff',
-          borderBottom: '1px solid #f0f0f0',
-          zIndex: 1000,
-          display: 'flex',
-          justifyContent: 'flex-end'
-        }}>
-          <CustomWalletButton />
-        </div>
-      )}
-      {!isMobile && (
-        <Sider
-          collapsible
-          collapsed={collapsed}
-          onCollapse={(value) => setCollapsed(value)}
-          style={{ 
-            background: '#fff',
-            height: '100vh',
-            position: 'sticky',
-            top: 0,
-            left: 0,
-            zIndex: 1000
-          }}
-          width={275}
-          collapsedWidth={88}
-          trigger={
-            <div style={{ 
-              background: '#fff', 
-              color: '#000',
-              height: '48px',
-              lineHeight: '48px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              {collapsed ? <RightOutlined /> : <LeftOutlined />}
-            </div>
-          }
-        >
-          <div style={{ 
-            padding: '16px',
-            display: 'flex',
-            justifyContent: 'center',
-            borderBottom: '1px solid #f0f0f0'
-          }}>
-            <Image
-              src="/itrix.png"
-              alt="Itrix Logo"
-              width={collapsed ? 40 : 120}
-              height={40}
-              style={{ objectFit: 'contain' }}
-            />
-          </div>
-          <Menu
-            mode="inline"
-            selectedKeys={[pathname]}
-            items={getMenuItems().map((item) => ({
-              key: item.key,
-              icon: item.key === '/create' ? null : item.icon,
-              label: item.key === '/create' ? (
-                <Button
-                  type="primary"
-                  icon={<PlusCircleOutlined />}
-                  onClick={handleCreatePost}
-                  style={{
-                    width: '100%',
-                    height: '40px',
-                    borderRadius: '20px',
-                    backgroundColor: '#4F46E5',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    fontSize: '15px'
-                  }}
-                >
-                  Create Post
-                </Button>
-              ) : (
-                <Link href={item.key} style={{ fontSize: '15px' }}>{item.label}</Link>
-              ),
-              style: item.key === '/create' ? {
-                padding: '0 16px',
-                marginTop: '8px',
-                height: '48px'
-              } : {
-                height: '48px',
-                margin: '4px 0',
-                paddingLeft: '24px',
-                fontSize: '15px'
-              }
-            }))}
-            style={{
-              border: 'none',
-              height: 'calc(100vh - 200px)',
-              fontSize: '15px'
-            }}
-          />
-          <div style={{ 
-            padding: '16px',
-            display: 'flex', 
-            justifyContent: 'center',
-            marginBottom: '24px' 
-          }}>
-            <CustomWalletButton />
-          </div>
-        </Sider>
-      )}
+    <Layout style={{ minHeight: '100vh', maxWidth: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        padding: '12px',
+        background: '#fff',
+        borderBottom: '1px solid #f0f0f0',
+        zIndex: 1000,
+        display: 'flex',
+        justifyContent: 'flex-end'
+      }}>
+        <CustomWalletButton />
+      </div>
 
       <Layout style={{ 
         background: '#fff',
@@ -348,21 +226,16 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           background: '#fff'
         }}>
           <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '600px 350px',
-            gap: 0,
-            width: '950px',
+            width: '100%',
+            maxWidth: '600px',
             margin: '0 auto',
-            paddingTop: isMobile ? '60px' : '0',
-            paddingBottom: isMobile ? '60px' : '0',
+            paddingTop: '60px',
+            paddingBottom: '60px',
           }}>
-            <div style={{ borderRight: '1px solid #f0f0f0' }}>
-              {children}
-            </div>
-            {!isMobile && <RightPanel />}
+            {children}
           </div>
         </Content>
-        {isMobile && renderMobileNav()}
+        {renderMobileNav()}
       </Layout>
     </Layout>
   );

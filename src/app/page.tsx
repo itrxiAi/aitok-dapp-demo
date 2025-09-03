@@ -36,7 +36,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ width: '100%', padding: '0 8px' }}>
       <List
         loading={loading}
         itemLayout="vertical"
