@@ -2,7 +2,7 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import dynamic from 'next/dynamic';
-import { Layout, Menu, Avatar, Typography, Button } from 'antd';
+import { Layout, Menu, Avatar, Typography, Button, Tabs } from 'antd';
 import {
   HomeOutlined,
   UserOutlined,
@@ -10,6 +10,8 @@ import {
   BellOutlined,
   PlusCircleOutlined,
   TeamOutlined,
+  UsergroupAddOutlined,
+  FireOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -89,26 +91,11 @@ const CustomWalletButton = () => {
   );
 };
 
-const menuItems = [
-  {
-    key: '/',
-    icon: <HomeOutlined />,
-    label: 'Home',
-  },
+const topTabItems = [
   {
     key: '/explore',
     icon: <CompassOutlined />,
     label: 'Explore',
-  },
-  {
-    key: '/notifications',
-    icon: <BellOutlined />,
-    label: 'Notifications',
-  },
-  {
-    key: '/profile',
-    icon: <UserOutlined />,
-    label: 'Profile',
   },
   {
     key: '/following',
@@ -116,9 +103,42 @@ const menuItems = [
     label: 'Following',
   },
   {
+    key: '/recommend',
+    icon: <FireOutlined />,
+    label: 'Recommend',
+  },
+];
+
+// Redirect mapping for navigation
+const redirects: Record<string, string> = {
+  '/': '/recommend',
+};
+
+const bottomMenuItems = [
+  {
+    key: '/recommend',
+    icon: <HomeOutlined />,
+    label: 'Home',
+  },
+  {
+    key: '/friends',
+    icon: <UsergroupAddOutlined />,
+    label: 'Friend',
+  },
+  {
     key: '/create',
     icon: <PlusCircleOutlined />,
-    label: 'Create Post',
+    label: 'Post+',
+  },
+  {
+    key: '/notifications',
+    icon: <BellOutlined />,
+    label: 'Notification',
+  },
+  {
+    key: '/profile',
+    icon: <UserOutlined />,
+    label: 'Profile',
   },
 ];
 
@@ -129,14 +149,20 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   // Update menu items to include wallet address in profile link
-  const getMenuItems = () => {
-    return menuItems.map(item => {
+  const getBottomMenuItems = () => {
+    return bottomMenuItems.map(item => {
       if (item.key === '/users/me' && walletAddress) {
         return {
           ...item,
           key: `/users/${walletAddress}`,
         };
       }
+      return item;
+    });
+  };
+  
+  const getTopTabItems = () => {
+    return topTabItems.map(item => {
       if (item.key === '/following' && walletAddress) {
         return {
           ...item,
@@ -151,7 +177,37 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     router.push('/create');
   };
 
-  const renderMobileNav = () => (
+  const renderTopTabs = () => (
+    <div
+      style={{
+        position: 'fixed',
+        top: '60px',
+        left: 0,
+        right: 0,
+        background: '#fff',
+        borderBottom: '1px solid #f0f0f0',
+        zIndex: 999,
+        padding: '0 10px',
+      }}
+    >
+      <Tabs
+        items={getTopTabItems().map((item) => ({
+          key: item.key,
+          label: (
+            <Link href={item.key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              {item.icon}
+              <span>{item.label}</span>
+            </Link>
+          ),
+        }))}
+        activeKey={pathname}
+        centered
+        size="large"
+      />
+    </div>
+  );
+
+  const renderBottomNav = () => (
     <div
       style={{
         position: 'fixed',
@@ -170,7 +226,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           display: 'flex',
           justifyContent: 'space-around',
         }}
-        items={getMenuItems().map((item) => ({
+        items={getBottomMenuItems().map((item) => ({
           key: item.key,
           icon: item.key === '/create' ? null : item.icon,
           label: item.key === '/create' ? (
@@ -179,20 +235,19 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               icon={<PlusCircleOutlined />}
               onClick={handleCreatePost}
               style={{
-                borderRadius: '20px',
-                backgroundColor: '#4F46E5',
+                borderRadius: '50%',
+                backgroundColor: '#FF2C55',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '4px 12px',
-                height: '32px',
+                padding: '4px',
+                height: '40px',
+                width: '40px',
                 fontSize: '15px'
               }}
-            >
-              Post
-            </Button>
+            />
           ) : (
-            <Link href={item.key} style={{ fontSize: '15px' }}>{item.label}</Link>
+            <Link href={item.key} style={{ fontSize: '12px' }}>{item.label}</Link>
           )
         }))}
       />
@@ -211,10 +266,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         borderBottom: '1px solid #f0f0f0',
         zIndex: 1000,
         display: 'flex',
-        justifyContent: 'flex-end'
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
+        <div style={{ fontSize: '18px', fontWeight: 'bold' }}>STEM</div>
         <CustomWalletButton />
       </div>
+      {renderTopTabs()}
 
       <Layout style={{ 
         background: '#fff',
@@ -229,13 +287,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             width: '100%',
             maxWidth: '600px',
             margin: '0 auto',
-            paddingTop: '60px',
-            paddingBottom: '60px',
+            paddingTop: '110px',
+            paddingBottom: '70px',
           }}>
             {children}
           </div>
         </Content>
-        {renderMobileNav()}
+        {renderBottomNav()}
       </Layout>
     </Layout>
   );
