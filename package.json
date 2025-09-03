@@ -1,0 +1,41 @@
+{
+  "name": "itrix-social",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 6006",
+    "build": "prisma generate && next build",
+    "start": "next start -p 6006",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.0.1",
+    "@daily-co/daily-react": "^0.22.0",
+    "@project-serum/anchor": "^0.26.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.34",
+    "@solana/wallet-adapter-wallets": "^0.19.23",
+    "@solana/web3.js": "^1.87.6",
+    "antd": "^5.1.7",
+    "axios": "^1.2.6",
+    "bs58": "^5.0.0",
+    "date-fns": "^2.29.3",
+    "ipfs-http-client": "^60.0.0",
+    "next": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-responsive": "^10.0.1",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.4.1",
+    "@types/node": "^20.11.16",
+    "@types/react": "^18.2.52",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.1.0",
+    "prisma": "^6.4.1",
+    "typescript": "^5.3.3"
+  }
+}

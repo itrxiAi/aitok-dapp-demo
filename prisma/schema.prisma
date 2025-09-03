@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+model User {
+  wallet_address String    @id
+  username       String?   @unique
+  display_name   String?
+  gender        Gender?
+  bio           String?
+  avatar_url    String?
+  avatar_real_url String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  // Relations
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  following     Follow[]   @relation("Following")
+  followers     Follow[]   @relation("Followers")
+  files         UserFile[]
+
+  @@map("users")
+}
+
+model Post {
+  id              String    @id @default(uuid())
+  author_address  String
+  content         String
+  media_url       String[]
+  transaction_hash String?
+  is_edited       Boolean   @default(false)
+  is_unfollow     Boolean   @default(true)
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  // Relations
+  author          User      @relation(fields: [author_address], references: [wallet_address])
+  comments        Comment[]
+  likes           Like[]
+  tags            PostTag[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id              String    @id @default(uuid())
+  post_id         String
+  author_address  String
+  content         String
+  transaction_hash String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  // Relations
+  post            Post      @relation(fields: [post_id], references: [id])
+  author          User      @relation(fields: [author_address], references: [wallet_address])
+
+  @@map("comments")
+}
+
+model Like {
+  post_id         String
+  user_address    String
+  transaction_hash String?
+  created_at      DateTime  @default(now())
+
+  // Relations
+  post            Post      @relation(fields: [post_id], references: [id])
+  user            User      @relation(fields: [user_address], references: [wallet_address])
+
+  @@id([post_id, user_address])
+  @@map("likes")
+}
+
+model Tag {
+  name            String    @id
+  created_at      DateTime  @default(now())
+  
+  // Relations
+  posts           PostTag[]
+
+  @@map("tags")
+}
+
+model PostTag {
+  post_id         String
+  tag_name        String
+  
+  // Relations
+  post            Post      @relation(fields: [post_id], references: [id])
+  tag             Tag       @relation(fields: [tag_name], references: [name])
+
+  @@id([post_id, tag_name])
+  @@map("post_tags")
+}
+
+model Follow {
+  follower_address  String
+  following_address String
+  created_at        DateTime  @default(now())
+
+  // Relations
+  follower          User      @relation("Following", fields: [follower_address], references: [wallet_address])
+  following         User      @relation("Followers", fields: [following_address], references: [wallet_address])
+
+  @@id([follower_address, following_address])
+  @@map("follows")
+}
+
+
+model UserFile {
+  id            String    @id @default(uuid())
+  user_address  String
+  file_name     String
+  file_type     String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  // Relations
+  user          User      @relation(fields: [user_address], references: [wallet_address])
+
+  @@map("user_files")
+}
