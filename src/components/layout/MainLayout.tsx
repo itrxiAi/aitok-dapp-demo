@@ -98,7 +98,7 @@ const topTabItems = [
     label: 'Explore',
   },
   {
-    key: '/following',
+    key: '/following-posts',
     icon: <TeamOutlined />,
     label: 'Following',
   },
@@ -217,40 +217,68 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         background: '#fff',
         borderTop: '1px solid #f0f0f0',
         zIndex: 1000,
+        padding: '5px 0',
       }}
     >
-      <Menu
-        mode="horizontal"
-        selectedKeys={[pathname]}
+      <div
         style={{
           display: 'flex',
-          justifyContent: 'space-around',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+          maxWidth: '600px',
+          margin: '0 auto',
         }}
-        items={getBottomMenuItems().map((item) => ({
-          key: item.key,
-          icon: item.key === '/create' ? null : item.icon,
-          label: item.key === '/create' ? (
-            <Button
-              type="primary"
-              icon={<PlusCircleOutlined />}
-              onClick={handleCreatePost}
+      >
+        {getBottomMenuItems().map((item) => {
+          const isActive = pathname === item.key;
+          const isPostButton = item.key === '/create';
+          
+          if (isPostButton) {
+            return (
+              <div key={item.key} style={{ width: '20%', textAlign: 'center' }}>
+                <Button
+                  type="primary"
+                  icon={<PlusCircleOutlined />}
+                  onClick={handleCreatePost}
+                  style={{
+                    borderRadius: '50%',
+                    backgroundColor: '#FF2C55',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0',
+                    height: '40px',
+                    width: '40px',
+                    fontSize: '15px',
+                    border: 'none',
+                  }}
+                />
+              </div>
+            );
+          }
+          
+          return (
+            <Link 
+              key={item.key} 
+              href={item.key}
               style={{
-                borderRadius: '50%',
-                backgroundColor: '#FF2C55',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '4px',
-                height: '40px',
-                width: '40px',
-                fontSize: '15px'
+                width: '20%',
+                textAlign: 'center',
+                textDecoration: 'none',
+                color: isActive ? '#1890ff' : 'rgba(0, 0, 0, 0.65)',
               }}
-            />
-          ) : (
-            <Link href={item.key} style={{ fontSize: '12px' }}>{item.label}</Link>
-          )
-        }))}
-      />
+            >
+              <div style={{ fontSize: '18px', lineHeight: 1 }}>
+                {item.icon}
+              </div>
+              <div style={{ fontSize: '12px', marginTop: '4px', whiteSpace: 'nowrap' }}>
+                {item.label}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 
