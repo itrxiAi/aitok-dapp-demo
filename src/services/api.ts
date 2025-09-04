@@ -1,3 +1,31 @@
+// Notification types
+export enum NotificationType {
+  FOLLOW = 'FOLLOW',
+  LIKE = 'LIKE',
+  COMMENT = 'COMMENT',
+  MESSAGE = 'MESSAGE'
+}
+
+export interface Notification {
+  id: string;
+  recipient_address: string;
+  sender_address?: string;
+  post_id?: string;
+  comment_id?: string;
+  type: NotificationType;
+  text: string;
+  formatted_text?: string;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+  sender?: {
+    wallet_address: string;
+    username?: string;
+    display_name?: string;
+    avatar_url?: string;
+  };
+}
+
 // Post types
 export interface Post {
   id: string;
@@ -155,9 +183,67 @@ export const api = {
   },
 
   notifications: {
-    list: async (userAddress: string): Promise<any[]> => {
-      const response = await fetch(`/api/notifications?userAddress=${userAddress}`);
+    list: async (recipientAddress: string, options?: { limit?: number; offset?: number; includeRead?: boolean }): Promise<{ data: Notification[]; pagination: { total: number; offset: number; limit: number } }> => {
+      const params = new URLSearchParams();
+      params.append('recipientAddress', recipientAddress);
+      
+      if (options?.limit) params.append('limit', options.limit.toString());
+      if (options?.offset) params.append('offset', options.offset.toString());
+      if (options?.includeRead !== undefined) params.append('includeRead', options.includeRead.toString());
+      
+      const response = await fetch(`/api/notifications?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch notifications');
+      return response.json();
+    },
+    
+    markAsRead: async (id: string): Promise<Notification> => {
+      const response = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_read: true }),
+      });
+      if (!response.ok) throw new Error('Failed to mark notification as read');
+      const result = await response.json();
+      return result.data;
+    },
+    
+    delete: async (id: string): Promise<void> => {
+      const response = await fetch(`/api/notifications?id=${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete notification');
+    },
+    
+    deleteAll: async (recipientAddress: string): Promise<void> => {
+      const response = await fetch(`/api/notifications?recipientAddress=${recipientAddress}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete notifications');
+    },
+  },
+  
+  messages: {
+    send: async (data: { senderAddress: string; recipientAddress: string; message: string }): Promise<Notification> => {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to send message');
+      const result = await response.json();
+      return result.data;
+    },
+    
+    getConversation: async (user1: string, user2: string, options?: { limit?: number; offset?: number }): Promise<{ data: Notification[]; pagination: { total: number; offset: number; limit: number } }> => {
+      const params = new URLSearchParams();
+      params.append('user1', user1);
+      params.append('user2', user2);
+      
+      if (options?.limit) params.append('limit', options.limit.toString());
+      if (options?.offset) params.append('offset', options.offset.toString());
+      
+      const response = await fetch(`/api/messages?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch messages');
       return response.json();
     },
   },

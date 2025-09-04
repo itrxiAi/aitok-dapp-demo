@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createNotification, formatNotificationText } from '@/lib/notifications';
+import { NotificationType } from '@/services/api';
 
 export async function POST(
   request: Request,
@@ -14,6 +16,14 @@ export async function POST(
         follower_address,
         following_address: params.address,
       },
+    });
+
+    // Create notification for the user being followed
+    await createNotification({
+      recipientAddress: params.address,
+      senderAddress: follower_address,
+      type: NotificationType.FOLLOW,
+      text: "",
     });
 
     return NextResponse.json(follow);

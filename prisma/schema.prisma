@@ -136,3 +136,27 @@ model UserFile {
 
   @@map("user_files")
 }
+
+enum NotificationType {
+  FOLLOW
+  LIKE
+  COMMENT
+  MESSAGE
+}
+
+model Notification {
+  id              String           @id @default(uuid())
+  recipient_address String
+  sender_address  String?
+  post_id         String?
+  comment_id      String?
+  type            NotificationType
+  text            String
+  is_read         Boolean          @default(false)
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+
+  @@index([recipient_address])
+  @@index([is_read])
+  @@map("notifications")
+}

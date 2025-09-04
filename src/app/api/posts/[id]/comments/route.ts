@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createNotification, formatNotificationText } from '@/lib/notifications';
+import { NotificationType } from '@/services/api';
 
 export async function POST(
   request: Request,
@@ -19,6 +21,27 @@ export async function POST(
         author: true,
       },
     });
+
+    // Get post author to send notification
+    const post = await prisma.post.findUnique({
+      where: { id: params.id },
+      select: { author_address: true }
+    });
+    
+    if (post) {
+      // Get commenter info for notification text
+      const commenterName = comment.author.display_name || comment.author.username || author_address.substring(0, 8) + '...';
+      
+      // Create notification for post author
+      await createNotification({
+        recipientAddress: post.author_address,
+        senderAddress: author_address,
+        type: NotificationType.COMMENT,
+        text: "",
+        postId: params.id,
+        commentId: comment.id
+      });
+    }
 
     return NextResponse.json(comment);
   } catch (error) {
