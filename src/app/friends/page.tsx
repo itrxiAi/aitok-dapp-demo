@@ -21,44 +21,46 @@ interface User {
   };
 }
 
-export default function Following() {
+export default function Friends() {
   const { publicKey } = useWallet();
   const router = useRouter();
-  const [following, setFollowing] = useState<User[]>([]);
+  const [friends, setFriends] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedBios, setExpandedBios] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (publicKey) {
-      fetchFollowing();
+      fetchFriends();
     }
   }, [publicKey]);
 
-  const fetchFollowing = async () => {
+  const fetchFriends = async () => {
     if (!publicKey) return;
 
     try {
-      const response = await fetch(`/api/users/${publicKey.toBase58()}/following`);
+      // This would be a different endpoint in a real app
+      const response = await fetch(`/api/users/${publicKey.toBase58()}/friends`);
       const data = await response.json();
-      setFollowing(data);
+      setFriends(data);
     } catch (error) {
-      console.error('Error fetching following:', error);
-      message.error('Failed to fetch following list');
+      console.error('Error fetching friends:', error);
+      message.error('Failed to fetch friends list');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUnfollow = async (address: string) => {
+  const handleUnfriend = async (address: string) => {
     if (!publicKey) return;
 
     try {
+      // This would be a different API call in a real app
       await api.users.unfollow(publicKey.toBase58(), address);
-      message.success('Unfollowed successfully');
-      fetchFollowing();
+      message.success('Removed friend successfully');
+      fetchFriends();
     } catch (error) {
-      console.error('Error unfollowing user:', error);
-      message.error('Failed to unfollow user');
+      console.error('Error removing friend:', error);
+      message.error('Failed to remove friend');
     }
   };
 
@@ -91,7 +93,7 @@ export default function Following() {
                 size="small"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleUnfollow(user.wallet_address);
+                  handleUnfriend(user.wallet_address);
                 }}
                 style={{ 
                   border: '1px solid rgb(207, 217, 222)',
@@ -104,7 +106,7 @@ export default function Following() {
                   background: 'white'
                 }}
               >
-                Unfollow
+                Remove Friend
               </Button>
             </Space>
           </div>
@@ -149,13 +151,13 @@ export default function Following() {
 
   return (
     <ContentListPage
-      title="Following"
-      data={following}
+      title="Friends"
+      data={friends}
       loading={loading}
-      emptyMessage="You are not following anyone yet"
-      notConnectedMessage="Please connect your wallet to view your following list"
+      emptyMessage="You don't have any friends yet"
+      notConnectedMessage="Please connect your wallet to view your friends list"
       renderItem={renderUser}
-      fetchData={fetchFollowing}
+      fetchData={fetchFriends}
     />
   );
 }

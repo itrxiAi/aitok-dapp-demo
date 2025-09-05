@@ -132,11 +132,11 @@ export default function Notifications() {
               Mark all as read
             </Button>
           )}
-          {notifications.length > 0 && (
+          {/* {notifications.length > 0 && (
             <Button type="text" danger onClick={handleClearAll}>
               Clear all
             </Button>
-          )}
+          )} */}
         </Space>
       </div>
       
