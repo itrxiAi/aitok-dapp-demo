@@ -35,6 +35,11 @@ export async function GET(request: Request) {
             user_address: true,
           },
         },
+        collects: {
+          select: {
+            user_address: true,
+          },
+        },
         comments: {
           select: {
             id: true,

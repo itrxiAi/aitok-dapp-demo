@@ -38,7 +38,6 @@ export default function Friends() {
     if (!publicKey) return;
 
     try {
-      // This would be a different endpoint in a real app
       const response = await fetch(`/api/users/${publicKey.toBase58()}/friends`);
       const data = await response.json();
       setFriends(data);

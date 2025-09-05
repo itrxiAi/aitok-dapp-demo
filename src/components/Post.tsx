@@ -2,7 +2,7 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Card, List, Avatar, Space, Button, message, Modal, Input, Form } from 'antd';
-import { UserOutlined, HeartOutlined, HeartFilled, CommentOutlined } from '@ant-design/icons';
+import { UserOutlined, HeartOutlined, HeartFilled, CommentOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
@@ -28,6 +28,7 @@ interface PostProps {
     media_url: string[];
     created_at: string;
     likes: Array<{ user_address: string }>;
+    collects?: Array<{ user_address: string }>;
     comments: any[];
     author: {
       wallet_address: string;
@@ -46,6 +47,11 @@ export function Post({ post, onUpdate }: PostProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentLoading, setCommentLoading] = useState(false);
   const [form] = Form.useForm();
+  
+  // Initialize collects array if it doesn't exist
+  if (!post.collects) {
+    post.collects = [];
+  }
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent click from bubbling to the card
@@ -67,6 +73,29 @@ export function Post({ post, onUpdate }: PostProps) {
     } catch (error) {
       console.error('Error liking/unliking post:', error);
       message.error('Failed to like/unlike post');
+    }
+  };
+  
+  const handleCollect = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent click from bubbling to the card
+    if (!publicKey) {
+      message.warning('Please connect your wallet to collect posts');
+      return;
+    }
+
+    try {
+      const isCollected = post.collects.some(collect => collect.user_address === publicKey.toBase58());
+
+      if (isCollected) {
+        await api.posts.uncollect(post.id, { user_address: publicKey.toBase58() });
+      } else {
+        await api.posts.collect(post.id, { user_address: publicKey.toBase58() });
+      }
+
+      onUpdate?.();
+    } catch (error) {
+      console.error('Error collecting/uncollecting post:', error);
+      message.error('Failed to collect/uncollect post');
     }
   };
 
@@ -115,6 +144,7 @@ export function Post({ post, onUpdate }: PostProps) {
   };
 
   const isLiked = publicKey && post.likes.some(like => like.user_address === publicKey.toBase58());
+  const isCollected = publicKey && post.collects.some(collect => collect.user_address === publicKey.toBase58());
 
   return (
     <Card 
@@ -140,6 +170,13 @@ export function Post({ post, onUpdate }: PostProps) {
               onClick={handleCommentClick}
             >
               {post.comments.length}
+            </Button>
+            <Button 
+              type="text" 
+              icon={isCollected ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+              onClick={handleCollect}
+            >
+              {post.collects.length}
             </Button>
           </Space>
         ]}

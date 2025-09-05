@@ -3,7 +3,8 @@ export enum NotificationType {
   FOLLOW = 'FOLLOW',
   LIKE = 'LIKE',
   COMMENT = 'COMMENT',
-  MESSAGE = 'MESSAGE'
+  MESSAGE = 'MESSAGE',
+  COLLECT = 'COLLECT'
 }
 
 export interface Notification {
@@ -96,6 +97,30 @@ export const api = {
 
     unlike: async (postId: string, data: any) => {
       const response = await fetch(`/api/posts/${postId}/like`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    collect: async (postId: string, data: { 
+      user_address: string;
+      transaction_hash?: string;
+    }) => {
+      const response = await fetch(`/api/posts/${postId}/collect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to collect post');
+      return response.json();
+    },
+
+    uncollect: async (postId: string, data: any) => {
+      const response = await fetch(`/api/posts/${postId}/collect`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

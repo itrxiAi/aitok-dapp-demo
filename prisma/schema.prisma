@@ -30,8 +30,11 @@ model User {
   posts         Post[]
   comments      Comment[]
   likes         Like[]
+  collects      Collect[]
   following     Follow[]   @relation("Following")
   followers     Follow[]   @relation("Followers")
+  friends       Friend[]   @relation("UserFriends")
+  friendOf      Friend[]   @relation("FriendOf")
   files         UserFile[]
 
   @@map("users")
@@ -52,6 +55,7 @@ model Post {
   author          User      @relation(fields: [author_address], references: [wallet_address])
   comments        Comment[]
   likes           Like[]
+  collects        Collect[]
   tags            PostTag[]
 
   @@map("posts")
@@ -85,6 +89,20 @@ model Like {
 
   @@id([post_id, user_address])
   @@map("likes")
+}
+
+model Collect {
+  post_id         String
+  user_address    String
+  transaction_hash String?
+  created_at      DateTime  @default(now())
+
+  // Relations
+  post            Post      @relation(fields: [post_id], references: [id])
+  user            User      @relation(fields: [user_address], references: [wallet_address])
+
+  @@id([post_id, user_address])
+  @@map("collects")
 }
 
 model Tag {
@@ -159,4 +177,17 @@ model Notification {
   @@index([recipient_address])
   @@index([is_read])
   @@map("notifications")
+}
+
+model Friend {
+  user_address     String
+  friend_address   String
+  created_at       DateTime  @default(now())
+
+  // Relations
+  user             User      @relation("UserFriends", fields: [user_address], references: [wallet_address])
+  friend           User      @relation("FriendOf", fields: [friend_address], references: [wallet_address])
+
+  @@id([user_address, friend_address])
+  @@map("friends")
 }
