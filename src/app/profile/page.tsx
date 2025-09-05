@@ -2,7 +2,7 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Card, Avatar, Typography, List, Button, Form, Input, message, Space, Upload, Switch, Tabs, Spin } from 'antd';
-import { UserOutlined, EditOutlined, HeartOutlined, HeartFilled, CommentOutlined, LoadingOutlined, PlusOutlined, UserAddOutlined } from '@ant-design/icons';
+import { UserOutlined, EditOutlined, HeartOutlined, HeartFilled, CommentOutlined, LoadingOutlined, PlusOutlined, UserAddOutlined, ShareAltOutlined } from '@ant-design/icons';
 import { Post } from '@/components/Post';
 import { useEffect, useState } from 'react';
 import { api } from '@/services/api';
@@ -305,6 +305,21 @@ export default function Profile() {
                   }}
                 >
                   Add Friends
+                </Button>
+                <Button 
+                  type="default" 
+                  icon={<ShareAltOutlined />}
+                  onClick={() => {
+                    const profileUrl = `${window.location.origin}/users/${publicKey?.toBase58()}`;
+                    navigator.clipboard.writeText(profileUrl);
+                    message.success('Profile link copied to clipboard!');
+                  }}
+                  style={{ 
+                    borderRadius: '20px',
+                    marginLeft: '8px'
+                  }}
+                >
+                  Share Profile
                 </Button>
               </Space>
             </div>
