@@ -101,7 +101,9 @@ export function Post({ post, onUpdate }: PostProps) {
 
   const handleUserClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent click from bubbling to the card
-    router.push(`/users/${post.author.wallet_address}`);
+    if (post.author?.wallet_address) {
+      router.push(`/users/${post.author.wallet_address}`);
+    }
   };
 
   const handleCommentClick = async () => {
@@ -185,14 +187,14 @@ export function Post({ post, onUpdate }: PostProps) {
           avatar={
             <Avatar 
               icon={<UserOutlined />} 
-              src={post.author.avatar_url}
+              src={post.author?.avatar_url}
               style={{ cursor: 'pointer' }}
               onClick={handleUserClick}
             />
           }
           title={
             <a onClick={handleUserClick}>
-              {post.author.display_name || post.author.username || `${post.author.wallet_address.slice(0, 4)}...${post.author.wallet_address.slice(-4)}`}
+              {post.author?.display_name || post.author?.username || `${post.author?.wallet_address?.slice(0, 4) || ''}...${post.author?.wallet_address?.slice(-4) || ''}`}
             </a>
           }
           description={new Date(post.created_at).toLocaleString()}

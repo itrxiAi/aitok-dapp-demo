@@ -153,6 +153,12 @@ export const api = {
       if (!response.ok) throw new Error('Failed to fetch users');
       return response.json();
     },
+    
+    getMyPosts: async (address: string) => {
+      const response = await fetch(`/api/users/${address}/my-posts`);
+      if (!response.ok) throw new Error('Failed to fetch user posts');
+      return response.json();
+    },
     getProfile: async (address: string, requestingUserAddress?: string) => {
       const url = new URL(`/api/users/${address}`, window.location.origin);
       if (requestingUserAddress) {
@@ -204,6 +210,18 @@ export const api = {
       const response = await fetch(`/api/users/${followingAddress}/follow?follower_address=${followerAddress}`);
       const data = await response.json();
       return data.isFollowing;
+    },
+    
+    getLikedPosts: async (address: string) => {
+      const response = await fetch(`/api/users/${address}/liked-posts`);
+      if (!response.ok) throw new Error('Failed to fetch liked posts');
+      return response.json();
+    },
+    
+    getCollectedPosts: async (address: string) => {
+      const response = await fetch(`/api/users/${address}/collected-posts`);
+      if (!response.ok) throw new Error('Failed to fetch collected posts');
+      return response.json();
     },
   },
 

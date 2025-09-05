@@ -1,8 +1,9 @@
 'use client';
 
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Card, Avatar, Typography, List, Button, Form, Input, message, Space, Upload, Switch } from 'antd';
+import { Card, Avatar, Typography, List, Button, Form, Input, message, Space, Upload, Switch, Tabs } from 'antd';
 import { UserOutlined, EditOutlined, HeartOutlined, HeartFilled, CommentOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { Post } from '@/components/Post';
 import { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import type { RcFile, UploadProps } from 'antd/es/upload';
@@ -20,7 +21,6 @@ interface UserProfile {
   gender?: 'MALE' | 'FEMALE';
   avatar_url?: string;
   avatar_real_url?: string;
-  posts: any[];
   _count: {
     posts: number;
     followers: number;
@@ -46,12 +46,82 @@ export default function Profile() {
   const [realImageUrl, setRealImageUrl] = useState<string>();
   const [uploading, setUploading] = useState(false);
   const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState('posts');
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<any[]>([]);
+  const [collectedPosts, setCollectedPosts] = useState<any[]>([]);
+  const [likedPostsLoading, setLikedPostsLoading] = useState(false);
+  const [collectedPostsLoading, setCollectedPostsLoading] = useState(false);
 
   useEffect(() => {
     if (publicKey) {
       fetchProfile();
+      fetchUserPosts();
     }
   }, [publicKey]);
+  
+  // Function to fetch user's own posts
+  const fetchUserPosts = async () => {
+    if (!publicKey) return;
+    
+    setPostsLoading(true);
+    try {
+      const userAddress = publicKey.toBase58();
+      const data = await api.users.getMyPosts(userAddress);
+      setPosts(data);
+    } catch (error) {
+      console.error('Error fetching user posts:', error);
+      message.error('Failed to fetch user posts');
+    } finally {
+      setPostsLoading(false);
+    }
+  };
+
+  // Fetch liked and collected posts when tab changes
+  useEffect(() => {
+    if (publicKey) {
+      if (activeTab === 'liked' && likedPosts.length === 0 && !likedPostsLoading) {
+        fetchLikedPosts();
+      } else if (activeTab === 'collected' && collectedPosts.length === 0 && !collectedPostsLoading) {
+        fetchCollectedPosts();
+      }
+    }
+  }, [activeTab, publicKey]);
+  
+  // Function to fetch liked posts
+  const fetchLikedPosts = async () => {
+    if (!publicKey) return;
+    
+    setLikedPostsLoading(true);
+    try {
+      const userAddress = publicKey.toBase58();
+      const data = await api.users.getLikedPosts(userAddress);
+      setLikedPosts(data);
+    } catch (error) {
+      console.error('Error fetching liked posts:', error);
+      message.error('Failed to fetch liked posts');
+    } finally {
+      setLikedPostsLoading(false);
+    }
+  };
+
+  // Function to fetch collected posts
+  const fetchCollectedPosts = async () => {
+    if (!publicKey) return;
+    
+    setCollectedPostsLoading(true);
+    try {
+      const userAddress = publicKey.toBase58();
+      const data = await api.users.getCollectedPosts(userAddress);
+      setCollectedPosts(data);
+    } catch (error) {
+      console.error('Error fetching collected posts:', error);
+      message.error('Failed to fetch collected posts');
+    } finally {
+      setCollectedPostsLoading(false);
+    }
+  };
 
   const fetchProfile = async () => {
     if (!publicKey) return;
@@ -152,7 +222,7 @@ export default function Profile() {
     if (!publicKey) return;
 
     try {
-      const post = profile?.posts.find(p => p.id === postId);
+      const post = posts.find(p => p.id === postId);
       const isLiked = post?.likes.some(like => like.user_address === publicKey.toBase58());
 
       if (isLiked) {
@@ -230,7 +300,7 @@ export default function Profile() {
               <Text type="secondary">{publicKey.toBase58()}</Text>
               {profile?.bio && <p>{profile.bio}</p>}
               <Space size="large">
-                <Text strong>{profile?.posts?.length || 0} Posts</Text>
+                <Text strong>{posts?.length || 0} Posts</Text>
                 <Text strong>{profile?._count.followers || 0} Followers</Text>
                 <Text onClick={() => router.push(`/users/${publicKey?.toBase58()}/following`)} style={{ cursor: 'pointer', fontWeight: 'bold' }}>
                   {profile?._count.following || 0} Following
@@ -358,93 +428,91 @@ export default function Profile() {
       `}</style>
 
       <Card styles={{ body: { padding: '12px' } }}>
-        <Title level={4} style={{ margin: 0, marginBottom: 12 }}>Your Posts</Title>
-        <List
-          itemLayout="vertical"
-          dataSource={profile?.posts || []}
-          style={{ marginTop: 8 }}
-          renderItem={(post) => {
-            const isLiked = post.likes.some(like => like.user_address === publicKey.toBase58());
-            
-            return (
-              <Card 
-                style={{ marginBottom: 8, cursor: 'pointer' }}
-                onClick={() => router.push(`/posts/${post.id}`)}
-                styles={{ body: { padding: '12px' } }}
-              >
-                <List.Item
-                  key={post.id}
-                  style={{ padding: 0 }}
-                  actions={[
-                    <Space key="actions" onClick={(e) => e.stopPropagation()}>
-                      <Button 
-                        type="text" 
-                        icon={isLiked ? <HeartFilled style={{ color: '#ff4d4f' }} /> : <HeartOutlined />}
-                        onClick={() => handleLike(post.id)}
-                      >
-                        {post.likes.length}
-                      </Button>
-                      <Button 
-                        type="text" 
-                        icon={<CommentOutlined />}
-                        onClick={() => router.push(`/posts/${post.id}#comments`)}
-                      >
-                        {post.comments.length}
-                      </Button>
-                    </Space>
-                  ]}
-                >
-                  <List.Item.Meta
-                    avatar={<Avatar icon={<UserOutlined />} src={profile.avatar_url} />}
-                    title={profile.display_name || profile.username || shortenedAddress}
-                    description={new Date(post.created_at).toLocaleString()}
+        <Tabs
+          activeKey={activeTab}
+          onChange={(key) => setActiveTab(key)}
+          items={[
+            {
+              key: 'posts',
+              label: 'Your Posts',
+              children: (
+                postsLoading ? (
+                  <div style={{ textAlign: 'center', padding: '16px' }}>
+                    <Text type="secondary">Loading posts...</Text>
+                  </div>
+                ) : posts.length > 0 ? (
+                  <List
+                    itemLayout="vertical"
+                    dataSource={posts}
+                    style={{ marginTop: 8 }}
+                    renderItem={(post) => (
+                      <Post 
+                        key={post.id}
+                        post={post} 
+                        onUpdate={fetchUserPosts}
+                      />
+                    )}
                   />
-                  {post.content}
-                  {post.media_url && post.media_url.length > 0 && (
-                    <div style={{ 
-                      marginTop: 8,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      backgroundColor: '#f0f0f0',
-                      padding: '16px',
-                      borderRadius: '8px'
-                    }}>
-                      {post.media_url[0].toLowerCase().endsWith('.mp4') || 
-                        post.media_url[0].toLowerCase().endsWith('.mov') || 
-                        post.media_url[0].toLowerCase().endsWith('.m4v') ? (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <video 
-                            controls 
-                            style={{ 
-                              maxWidth: '100%',
-                              maxHeight: '500px',
-                              borderRadius: '8px',
-                              backgroundColor: '#000'
-                            }}
-                          >
-                            <source src={post.media_url[0]} type="video/mp4" />
-                            Your browser does not support the video tag.
-                          </video>
-                        </div>
-                      ) : (
-                        <img
-                          src={post.media_url[0]}
-                          alt="Post media"
-                          style={{ 
-                            maxWidth: '100%',
-                            maxHeight: '500px',
-                            borderRadius: '8px',
-                            objectFit: 'contain'
-                          }}
-                        />
-                      )}
-                    </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '16px' }}>
+                    <Text type="secondary">You haven't created any posts yet.</Text>
+                  </div>
+                )
+              ),
+            },
+            {
+              key: 'liked',
+              label: 'Posts I Liked',
+              children: likedPostsLoading ? (
+                <div style={{ textAlign: 'center', padding: '32px' }}>
+                  <div>Loading...</div>
+                </div>
+              ) : likedPosts.length > 0 ? (
+                <List
+                  itemLayout="vertical"
+                  dataSource={likedPosts}
+                  style={{ marginTop: 8 }}
+                  renderItem={(post) => (
+                    <Post 
+                      key={post.id}
+                      post={post} 
+                      onUpdate={fetchLikedPosts}
+                    />
                   )}
-                </List.Item>
-              </Card>
-            );
-          }}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '32px' }}>
+                  <Text type="secondary" style={{ display: 'block' }}>No liked posts found</Text>
+                </div>
+              ),
+            },
+            {
+              key: 'collected',
+              label: 'Posts I Collected',
+              children: collectedPostsLoading ? (
+                <div style={{ textAlign: 'center', padding: '32px' }}>
+                  <div>Loading...</div>
+                </div>
+              ) : collectedPosts.length > 0 ? (
+                <List
+                  itemLayout="vertical"
+                  dataSource={collectedPosts}
+                  style={{ marginTop: 8 }}
+                  renderItem={(post) => (
+                    <Post 
+                      key={post.id}
+                      post={post} 
+                      onUpdate={fetchCollectedPosts}
+                    />
+                  )}
+                />
+              ) : (
+                <div style={{ textAlign: 'center', padding: '32px' }}>
+                  <Text type="secondary" style={{ display: 'block' }}>No collected posts found</Text>
+                </div>
+              ),
+            },
+          ]}
         />
       </Card>
     </div>

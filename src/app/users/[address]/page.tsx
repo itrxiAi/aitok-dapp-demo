@@ -8,6 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { Connection, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction } from '@solana/web3.js';
 import { UserChat } from '@/components/chat/UserChat';
+import { Post } from '@/components/Post';
 
 const { Title, Text } = Typography;
 
@@ -17,7 +18,6 @@ interface UserProfile {
   display_name?: string;
   bio?: string;
   avatar_url?: string;
-  posts: any[];
   _count: {
     posts: number;
     followers: number;
@@ -32,31 +32,47 @@ export default function UserProfile() {
   const router = useRouter();
   const address = params.address as string;
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [postsLoading, setPostsLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const [patronLoading, setPatronLoading] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await api.users.getProfile(address, publicKey?.toBase58());
-        if (publicKey) {
-          // Check if the current user is following this profile
-          const isFollowing = await api.users.checkFollowing(publicKey.toBase58(), address);
-          data.isFollowing = isFollowing;
-        }
-        setProfile(data);
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        message.error('Failed to fetch profile');
-      } finally {
-        setLoading(false);
+  const fetchProfile = async () => {
+    try {
+      const data = await api.users.getProfile(address, publicKey?.toBase58());
+      if (publicKey) {
+        // Check if the current user is following this profile
+        const isFollowing = await api.users.checkFollowing(publicKey.toBase58(), address);
+        data.isFollowing = isFollowing;
       }
-    };
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      message.error('Failed to fetch profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const fetchUserPosts = async () => {
+    try {
+      setPostsLoading(true);
+      const userPosts = await api.users.getMyPosts(address);
+      setPosts(userPosts);
+    } catch (error) {
+      console.error('Error fetching user posts:', error);
+      message.error('Failed to fetch user posts');
+    } finally {
+      setPostsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (address) {
       fetchProfile();
+      fetchUserPosts();
     }
   }, [address, publicKey]);
 
@@ -139,7 +155,7 @@ export default function UserProfile() {
     }
 
     try {
-      const post = profile?.posts.find(p => p.id === postId);
+      const post = posts.find(p => p.id === postId);
       const isLiked = post?.likes.some(like => like.user_address === publicKey.toBase58());
 
       if (isLiked) {
@@ -300,7 +316,7 @@ export default function UserProfile() {
               )}
               {profile.bio && <Text style={{ display: 'block', marginBottom: '8px' }}>{profile.bio}</Text>}
               <Space size="large">
-                <Text strong>{profile?.posts?.length || 0} Posts</Text>
+                <Text strong>{posts?.length || 0} Posts</Text>
                 <Text strong>{profile._count.followers} Followers</Text>
                 <Text onClick={() => router.push(`/users/${profile.wallet_address}/following`)} style={{ cursor: 'pointer' }}>
                   {profile._count.following} Following
@@ -313,86 +329,27 @@ export default function UserProfile() {
 
       <Card style={{ marginTop: 8 }} styles={{ body: { padding: '12px' } }}>
         <Title level={4} style={{ margin: 0, marginBottom: 8 }}>Posts</Title>
-        {profile.posts && profile.posts.length > 0 ? (
+        {postsLoading ? (
+          <div style={{ textAlign: 'center', padding: '16px' }}>
+            <Text type="secondary">Loading posts...</Text>
+          </div>
+        ) : posts && posts.length > 0 ? (
           <List
             itemLayout="vertical"
-            dataSource={profile.posts}
+            dataSource={posts}
             style={{ marginTop: 8 }}
             renderItem={(post) => (
-              <List.Item
-                style={{ padding: 0, cursor: 'pointer' }}
-                onClick={() => router.push(`/posts/${post.id}`)}
-                actions={[
-                  <Button 
-                    key="like" 
-                    type="text" 
-                    icon={post.likes.some(like => like.user_address === publicKey?.toBase58()) ? 
-                      <HeartFilled style={{ color: '#ff4d4f' }} /> : 
-                      <HeartOutlined />
-                    }
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLike(post.id);
-                    }}
-                  >
-                    {post.likes.length}
-                  </Button>
-                ]}
-              >
-                <List.Item.Meta
-                  avatar={<Avatar icon={<UserOutlined />} src={profile.avatar_url} />}
-                  title={profile.display_name || profile.username || `${profile.wallet_address.slice(0, 4)}...${profile.wallet_address.slice(-4)}`}
-                  description={new Date(post.created_at).toLocaleString()}
-                  style={{ marginBottom: 8 }}
-                />
-                {post.content}
-                {post.media_url && post.media_url.length > 0 && (
-                  <div style={{ 
-                    marginTop: 16,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: '#f0f0f0',
-                    padding: '16px',
-                    borderRadius: '8px'
-                  }}>
-                    {post.media_url[0].toLowerCase().endsWith('.mp4') || 
-                      post.media_url[0].toLowerCase().endsWith('.mov') || 
-                      post.media_url[0].toLowerCase().endsWith('.m4v') ? (
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <video 
-                          controls 
-                          style={{ 
-                            width: '100%',
-                            maxHeight: '400px',
-                            borderRadius: '8px',
-                            backgroundColor: '#000'
-                          }}
-                        >
-                          <source src={post.media_url[0]} type="video/mp4" />
-                        </video>
-                      </div>
-                    ) : (
-                      <img
-                        src={post.media_url[0]}
-                        alt="Post media"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '400px',
-                          borderRadius: '8px',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    )}
-                  </div>
-                )}
-              </List.Item>
+              <Post 
+                key={post.id}
+                post={post} 
+                onUpdate={fetchUserPosts}
+              />
             )}
           />
         ) : (
           <div style={{ textAlign: 'center', padding: '32px' }}>
             <LockOutlined style={{ fontSize: '32px', color: '#bfbfbf', marginBottom: '16px' }} />
-            <Text type="secondary" style={{ display: 'block' }}>Follow to unlock posts from this user</Text>
+            <Text type="secondary" style={{ display: 'block' }}>No posts from this user yet</Text>
           </div>
         )}
       </Card>
