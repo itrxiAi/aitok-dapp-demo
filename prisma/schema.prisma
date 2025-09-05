@@ -160,6 +160,7 @@ enum NotificationType {
   LIKE
   COMMENT
   MESSAGE
+  COLLECT
 }
 
 model Notification {

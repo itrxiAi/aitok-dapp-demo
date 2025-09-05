@@ -1,11 +1,7 @@
-// Notification types
-export enum NotificationType {
-  FOLLOW = 'FOLLOW',
-  LIKE = 'LIKE',
-  COMMENT = 'COMMENT',
-  MESSAGE = 'MESSAGE',
-  COLLECT = 'COLLECT'
-}
+import { NotificationType as PrismaNotificationType } from '@prisma/client';
+
+// Export NotificationType from Prisma client
+export { PrismaNotificationType as NotificationType };
 
 export interface Notification {
   id: string;
@@ -13,7 +9,7 @@ export interface Notification {
   sender_address?: string;
   post_id?: string;
   comment_id?: string;
-  type: NotificationType;
+  type: PrismaNotificationType;
   text: string;
   formatted_text?: string;
   is_read: boolean;
