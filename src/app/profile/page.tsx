@@ -1,14 +1,15 @@
 'use client';
 
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Card, Avatar, Typography, List, Button, Form, Input, message, Space, Upload, Switch, Tabs } from 'antd';
-import { UserOutlined, EditOutlined, HeartOutlined, HeartFilled, CommentOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { Card, Avatar, Typography, List, Button, Form, Input, message, Space, Upload, Switch, Tabs, Spin } from 'antd';
+import { UserOutlined, EditOutlined, HeartOutlined, HeartFilled, CommentOutlined, LoadingOutlined, PlusOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Post } from '@/components/Post';
 import { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { useRouter } from 'next/navigation';
+import { AddFriendsModal } from '@/components/AddFriendsModal';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -53,6 +54,7 @@ export default function Profile() {
   const [collectedPosts, setCollectedPosts] = useState<any[]>([]);
   const [likedPostsLoading, setLikedPostsLoading] = useState(false);
   const [collectedPostsLoading, setCollectedPostsLoading] = useState(false);
+  const [addFriendsModalVisible, setAddFriendsModalVisible] = useState(false);
 
   useEffect(() => {
     if (publicKey) {
@@ -105,7 +107,7 @@ export default function Profile() {
       setLikedPostsLoading(false);
     }
   };
-
+  
   // Function to fetch collected posts
   const fetchCollectedPosts = async () => {
     if (!publicKey) return;
@@ -128,10 +130,8 @@ export default function Profile() {
 
     try {
       const userAddress = publicKey.toBase58();
-      const data = await api.users.getProfile(userAddress, userAddress);
+      const data = await api.users.getProfile(userAddress);
       setProfile(data);
-      setImageUrl(data?.avatar_url);
-      setRealImageUrl(data?.avatar_real_url);
     } catch (error) {
       console.error('Error fetching profile:', error);
       message.error('Failed to fetch profile');
@@ -141,35 +141,28 @@ export default function Profile() {
   };
 
   const beforeUpload = (file: RcFile) => {
-    const isImage = file.type.startsWith('image/');
-    if (!isImage) {
-      message.error('You can only upload image files!');
-      return false;
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    if (!isJpgOrPng) {
+      message.error('You can only upload JPG/PNG file!');
     }
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
       message.error('Image must smaller than 2MB!');
-      return false;
     }
-    return true;
+    return isJpgOrPng && isLt2M;
   };
 
-  const handleUpload: UploadProps['onChange'] = async (info) => {
+  const handleUpload: UploadProps['onChange'] = (info) => {
     if (info.file.status === 'uploading') {
       setUploading(true);
       return;
     }
-
     if (info.file.status === 'done') {
+      // Get this url from response in real world.
       try {
-        // Get the preview
-        const base64Url = await getBase64(info.file.originFileObj as RcFile);
-        setImageUrl(base64Url);
-        
-        // Get the uploaded file URL from the response
-        const uploadedUrl = info.file.response.url;
-        form.setFieldValue('avatar_url', uploadedUrl);
-        
+        const url = info.file.response?.url;
+        setImageUrl(url);
+        form.setFieldValue('avatar_url', url);
         setUploading(false);
       } catch (error) {
         console.error('Error processing image:', error);
@@ -179,21 +172,17 @@ export default function Profile() {
     }
   };
 
-  const handleRealUpload: UploadProps['onChange'] = async (info) => {
+  const handleRealUpload: UploadProps['onChange'] = (info) => {
     if (info.file.status === 'uploading') {
       setUploading(true);
       return;
     }
-
     if (info.file.status === 'done') {
+      // Get this url from response in real world.
       try {
-        // Get the uploaded file URL from the response
-        const uploadedUrl = info.file.response.url;
-        console.log('Real portrait URL:', uploadedUrl);
-        setRealImageUrl(uploadedUrl);
-        form.setFieldValue('avatar_real_url', uploadedUrl);
-        console.log('Form values after setting real portrait:', form.getFieldsValue());
-        
+        const url = info.file.response?.url;
+        setRealImageUrl(url);
+        form.setFieldValue('avatar_real_url', url);
         setUploading(false);
       } catch (error) {
         console.error('Error processing image:', error);
@@ -262,6 +251,7 @@ export default function Profile() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto' }}>
+      
       <Card styles={{ body: { padding: '12px' } }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Space align="start" size="large">
@@ -305,6 +295,17 @@ export default function Profile() {
                 <Text onClick={() => router.push(`/users/${publicKey?.toBase58()}/following`)} style={{ cursor: 'pointer', fontWeight: 'bold' }}>
                   {profile?._count.following || 0} Following
                 </Text>
+                <Button 
+                  type="primary" 
+                  icon={<UserAddOutlined />}
+                  onClick={() => setAddFriendsModalVisible(true)}
+                  style={{ 
+                    borderRadius: '20px',
+                    marginLeft: '8px'
+                  }}
+                >
+                  Add Friends
+                </Button>
               </Space>
             </div>
           </Space>
@@ -438,7 +439,7 @@ export default function Profile() {
               children: (
                 postsLoading ? (
                   <div style={{ textAlign: 'center', padding: '16px' }}>
-                    <Text type="secondary">Loading posts...</Text>
+                    <Spin size="large" />
                   </div>
                 ) : posts.length > 0 ? (
                   <List
@@ -465,7 +466,7 @@ export default function Profile() {
               label: 'Posts I Liked',
               children: likedPostsLoading ? (
                 <div style={{ textAlign: 'center', padding: '32px' }}>
-                  <div>Loading...</div>
+                  <Spin size="large" />
                 </div>
               ) : likedPosts.length > 0 ? (
                 <List
@@ -491,7 +492,7 @@ export default function Profile() {
               label: 'Posts I Collected',
               children: collectedPostsLoading ? (
                 <div style={{ textAlign: 'center', padding: '32px' }}>
-                  <div>Loading...</div>
+                  <Spin size="large" />
                 </div>
               ) : collectedPosts.length > 0 ? (
                 <List
@@ -515,6 +516,12 @@ export default function Profile() {
           ]}
         />
       </Card>
+      
+      <AddFriendsModal
+        visible={addFriendsModalVisible}
+        onClose={() => setAddFriendsModalVisible(false)}
+        currentUserAddress={publicKey?.toBase58()}
+      />
     </div>
   );
 }

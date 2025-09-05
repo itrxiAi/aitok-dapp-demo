@@ -155,10 +155,31 @@ export const api = {
     },
     
     getMyPosts: async (address: string) => {
-      const response = await fetch(`/api/users/${address}/my-posts`);
-      if (!response.ok) throw new Error('Failed to fetch user posts');
-      return response.json();
+      try {
+        const response = await fetch(`/api/users/${address}/my-posts`);
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching user posts:', error);
+        throw error;
+      }
     },
+  
+    getFriendsPosts: async (address: string) => {
+      try {
+        const response = await fetch(`/api/users/${address}/friends-posts`);
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching friends posts:', error);
+        throw error;
+      }
+    },
+  
     getProfile: async (address: string, requestingUserAddress?: string) => {
       const url = new URL(`/api/users/${address}`, window.location.origin);
       if (requestingUserAddress) {
