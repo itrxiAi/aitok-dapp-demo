@@ -43,7 +43,16 @@ export async function GET(
       },
     });
 
-    return NextResponse.json(myPosts);
+    // Add isFollowing field to each post's author
+    const postsWithFollowingInfo = myPosts.map((post) => ({
+      ...post,
+      author: {
+        ...post.author,
+        isFollowing: true
+      }
+    }));
+
+    return NextResponse.json(postsWithFollowingInfo);
   } catch (error) {
     console.error('Error fetching user posts:', error);
     return NextResponse.json(

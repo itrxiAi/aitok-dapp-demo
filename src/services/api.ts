@@ -55,8 +55,9 @@ export interface Post {
 // API functions
 export const api = {
   posts: {
-    list: async (): Promise<Post[]> => {
-      const response = await fetch('/api/posts');
+    list: async (myAddress?: string): Promise<Post[]> => {
+      const url = myAddress ? `/api/posts?myAddress=${myAddress}` : '/api/posts';
+      const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch posts');
       return response.json();
     },

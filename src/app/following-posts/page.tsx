@@ -22,7 +22,7 @@ export default function FollowingPostsPage() {
   const fetchFollowingPosts = async () => {
     try {
       // Fetch posts with userAddress parameter to filter by followed users
-      const response = await fetch(`/api/posts?userAddress=${walletAddress}`);
+      const response = await fetch(`/api/posts?userAddress=${walletAddress}&myAddress=${walletAddress}`);
       if (!response.ok) throw new Error('Failed to fetch following posts');
       
       const fetchedPosts = await response.json();

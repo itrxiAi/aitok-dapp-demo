@@ -5,6 +5,23 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const userAddress = searchParams.get('userAddress');
+    const myAddress = searchParams.get('myAddress');
+    
+    // Get the list of users that the current user is following (if userAddress is provided)
+    let followingAddresses: string[] = [];
+    if (myAddress) {
+      const followingList = await prisma.follow.findMany({
+        where: {
+          follower_address: myAddress
+        },
+        select: {
+          following_address: true
+        }
+      });
+      
+      followingAddresses = followingList.map(follow => follow.following_address);
+      followingAddresses.push(myAddress);
+    }
 
     const posts = await prisma.post.findMany({
       where: {
@@ -65,7 +82,16 @@ export async function GET(request: Request) {
       },
     });
 
-    return NextResponse.json(posts);
+    // Add isFollowing field to each post's author
+    const postsWithFollowingInfo = posts.map(post => ({
+      ...post,
+      author: {
+        ...post.author,
+        isFollowing: followingAddresses.includes(post.author.wallet_address)
+      }
+    }));
+    
+    return NextResponse.json(postsWithFollowingInfo);
   } catch (error) {
     console.error('Error fetching posts:', error);
     return NextResponse.json(

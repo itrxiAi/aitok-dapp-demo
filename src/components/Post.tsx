@@ -35,6 +35,7 @@ interface PostProps {
       display_name?: string;
       username?: string;
       avatar_url?: string;
+      isFollowing?: boolean;
     };
   };
   onUpdate?: () => void;
@@ -46,6 +47,8 @@ export function Post({ post, onUpdate }: PostProps) {
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentLoading, setCommentLoading] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(post.author?.isFollowing || false);
   const [form] = Form.useForm();
   
   // Initialize collects array if it doesn't exist
@@ -100,9 +103,39 @@ export function Post({ post, onUpdate }: PostProps) {
   };
 
   const handleUserClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent click from bubbling to the card
-    if (post.author?.wallet_address) {
-      router.push(`/users/${post.author.wallet_address}`);
+    e.stopPropagation();
+    router.push(`/users/${post.author.wallet_address}`);
+  };
+  
+  const handleFollow = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!publicKey) {
+      message.error('Please connect your wallet to follow users');
+      return;
+    }
+    
+    try {
+      setFollowLoading(true);
+      
+      if (!isFollowing) {
+        await api.users.follow(publicKey.toBase58(), post.author.wallet_address);
+        message.success(`You are now following ${post.author.display_name || post.author.username || 'this user'}`);
+        setIsFollowing(true);
+      } else {
+        await api.users.unfollow(publicKey.toBase58(), post.author.wallet_address);
+        message.success(`You have unfollowed ${post.author.display_name || post.author.username || 'this user'}`);
+        setIsFollowing(false);
+      }
+      
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Error following/unfollowing user:', error);
+      message.error('Failed to follow/unfollow user');
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -185,12 +218,37 @@ export function Post({ post, onUpdate }: PostProps) {
       >
         <List.Item.Meta
           avatar={
-            <Avatar 
-              icon={<UserOutlined />} 
-              src={post.author?.avatar_url}
-              style={{ cursor: 'pointer' }}
-              onClick={handleUserClick}
-            />
+            <div style={{ position: 'relative' }}>
+              <Avatar 
+                icon={<UserOutlined />} 
+                src={post.author?.avatar_url}
+                style={{ cursor: 'pointer' }}
+                onClick={handleUserClick}
+              />
+              {!isFollowing && publicKey && post.author?.wallet_address !== publicKey.toBase58() && (
+                <Button
+                  type="primary"
+                  size="small"
+                  shape="circle"
+                  icon={<span>+</span>}
+                  onClick={handleFollow}
+                  loading={followLoading}
+                  style={{
+                    position: 'absolute',
+                    bottom: -8,
+                    right: -8,
+                    width: '20px',
+                    height: '20px',
+                    minWidth: '20px',
+                    fontSize: '12px',
+                    padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                />
+              )}
+            </div>
           }
           title={
             <a onClick={handleUserClick}>

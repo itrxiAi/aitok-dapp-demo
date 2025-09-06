@@ -9,6 +9,19 @@ export async function GET(
     const address = params.address;
     
     // Find all posts that the user has liked
+    // Get the list of users that the current user is following
+    const followingList = await prisma.follow.findMany({
+      where: {
+        follower_address: address
+      },
+      select: {
+        following_address: true
+      }
+    });
+    
+    const followingAddresses = followingList.map(follow => follow.following_address);
+    followingAddresses.push(address);
+    
     const likedPosts = await prisma.post.findMany({
       where: {
         likes: {
@@ -71,7 +84,16 @@ export async function GET(
       },
     });
 
-    return NextResponse.json(likedPosts);
+    // Add isFollowing field to each post's author
+    const postsWithFollowingInfo = likedPosts.map(post => ({
+      ...post,
+      author: {
+        ...post.author,
+        isFollowing: followingAddresses.includes(post.author.wallet_address)
+      }
+    }));
+    
+    return NextResponse.json(postsWithFollowingInfo);
   } catch (error) {
     console.error('Error fetching liked posts:', error);
     return NextResponse.json(
