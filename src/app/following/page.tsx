@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useWallet } from '@solana/wallet-adapter-react';
-import { Avatar, Typography, Button, message, Space, List } from 'antd';
-import { UserOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
-import { useEffect, useState } from 'react';
-import { api } from '@/services/api';
-import { useRouter } from 'next/navigation';
-import { ContentListPage } from '@/components/ContentListPage';
+import { useWallet } from "@solana/wallet-adapter-react";
+import { Avatar, Typography, Button, message, Space, List } from "antd";
+import { UserOutlined, DownOutlined, UpOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { api } from "@/services/api";
+import { useRouter } from "next/navigation";
+import { ContentListPage } from "@/components/ContentListPage";
 
 const { Text } = Typography;
 
@@ -38,12 +38,14 @@ export default function Following() {
     if (!publicKey) return;
 
     try {
-      const response = await fetch(`/api/users/${publicKey.toBase58()}/following`);
+      const response = await fetch(
+        `/api/users/${publicKey.toBase58()}/following`
+      );
       const data = await response.json();
       setFollowing(data);
     } catch (error) {
-      console.error('Error fetching following:', error);
-      message.error('Failed to fetch following list');
+      console.error("Error fetching following:", error);
+      message.error("Failed to fetch following list");
     } finally {
       setLoading(false);
     }
@@ -54,18 +56,18 @@ export default function Following() {
 
     try {
       await api.users.unfollow(publicKey.toBase58(), address);
-      message.success('Unfollowed successfully');
+      message.success("Unfollowed successfully");
       fetchFollowing();
     } catch (error) {
-      console.error('Error unfollowing user:', error);
-      message.error('Failed to unfollow user');
+      console.error("Error unfollowing user:", error);
+      message.error("Failed to unfollow user");
     }
   };
 
   const toggleBio = (address: string) => {
-    setExpandedBios(prev => ({
+    setExpandedBios((prev) => ({
       ...prev,
-      [address]: !prev[address]
+      [address]: !prev[address],
     }));
   };
 
@@ -73,35 +75,40 @@ export default function Following() {
     <List.Item>
       <List.Item.Meta
         avatar={
-          <Avatar 
-            icon={<UserOutlined />} 
+          <Avatar
+            icon={<UserOutlined />}
             src={user.avatar_url}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: "pointer" }}
             onClick={() => router.push(`/users/${user.wallet_address}`)}
           />
         }
         title={
           <div>
             <a onClick={() => router.push(`/users/${user.wallet_address}`)}>
-              {user.display_name || user.username || `${user.wallet_address.slice(0, 4)}...${user.wallet_address.slice(-4)}`}
+              {user.display_name ||
+                user.username ||
+                `${user.wallet_address.slice(
+                  0,
+                  4
+                )}...${user.wallet_address.slice(-4)}`}
             </a>
-            <Space style={{ marginLeft: 16, fontSize: '0.9em', color: '#666' }}>
+            <Space style={{ marginLeft: 16, fontSize: "0.9em", color: "#666" }}>
               <Text>{user._count?.followers || 0} Followers</Text>
-              <Button 
+              <Button
                 size="small"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleUnfollow(user.wallet_address);
                 }}
-                style={{ 
-                  border: '1px solid rgb(207, 217, 222)',
-                  borderRadius: '16px',
-                  height: '28px',
-                  padding: '0 12px',
-                  color: 'rgb(83, 100, 113)',
+                style={{
+                  border: "1px solid rgb(207, 217, 222)",
+                  borderRadius: "16px",
+                  height: "28px",
+                  padding: "0 12px",
+                  color: "rgb(83, 100, 113)",
                   fontWeight: 400,
-                  fontSize: '13px',
-                  background: 'white'
+                  fontSize: "13px",
+                  background: "white",
                 }}
               >
                 Unfollow
@@ -112,30 +119,34 @@ export default function Following() {
         description={
           user.bio && (
             <div>
-              <div style={{ 
-                marginTop: 4,
-                position: 'relative',
-                maxHeight: expandedBios[user.wallet_address] ? 'none' : '44px',
-                overflow: 'hidden'
-              }}>
+              <div
+                style={{
+                  marginTop: 4,
+                  position: "relative",
+                  maxHeight: expandedBios[user.wallet_address]
+                    ? "none"
+                    : "44px",
+                  overflow: "hidden",
+                }}
+              >
                 {user.bio}
               </div>
               {user.bio.length > 100 && (
-                <Button 
-                  type="link" 
+                <Button
+                  type="link"
                   size="small"
                   onClick={() => toggleBio(user.wallet_address)}
-                  style={{ padding: 0, height: 'auto', marginTop: 4 }}
+                  style={{ padding: 0, height: "auto", marginTop: 4 }}
                 >
                   {expandedBios[user.wallet_address] ? (
                     <Space>
                       <span>Show less</span>
-                      <UpOutlined style={{ fontSize: '12px' }} />
+                      <UpOutlined style={{ fontSize: "12px" }} />
                     </Space>
                   ) : (
                     <Space>
                       <span>Show more</span>
-                      <DownOutlined style={{ fontSize: '12px' }} />
+                      <DownOutlined style={{ fontSize: "12px" }} />
                     </Space>
                   )}
                 </Button>

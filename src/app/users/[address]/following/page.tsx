@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Card, List, Button } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
-import { UserCard } from '@/components/UserCard';
+import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Card, List, Button } from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+import { UserCard } from "@/components/UserCard";
 
 interface User {
   wallet_address: string;
@@ -33,36 +33,55 @@ export default function FollowingPage() {
     try {
       const response = await fetch(`/api/users/${params.address}/following`);
       if (!response.ok) {
-        throw new Error('Failed to fetch following');
+        throw new Error("Failed to fetch following");
       }
       const data = await response.json();
       setUsers(data);
     } catch (error) {
-      console.error('Error fetching following:', error);
+      console.error("Error fetching following:", error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '20px' }}>
-      <div style={{ marginBottom: 16 }}>
-        <Button 
-          icon={<ArrowLeftOutlined />} 
-          onClick={() => router.back()}
-        >
-          Back
-        </Button>
-      </div>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#161722",
+        color: "#ffffff",
+        padding: "20px",
+      }}
+    >
+      <div style={{ maxWidth: 800, margin: "0 auto" }}>
+        <div style={{ marginBottom: 16 }}>
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={() => router.back()}
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              color: "#ffffff",
+            }}
+          >
+            Back
+          </Button>
+        </div>
 
-      <Card loading={loading}>
-        <List
-          dataSource={users}
-          renderItem={(user) => (
-            <UserCard user={user} />
-          )}
-        />
-      </Card>
+        <Card
+          loading={loading}
+          style={{
+            background: "rgba(0,0,0,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#ffffff",
+          }}
+        >
+          <List
+            dataSource={users}
+            renderItem={(user) => <UserCard user={user} />}
+          />
+        </Card>
+      </div>
     </div>
   );
 }
