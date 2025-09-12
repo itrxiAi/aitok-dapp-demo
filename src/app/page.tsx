@@ -5,11 +5,18 @@ import { Card, List } from 'antd';
 import { useEffect, useState } from 'react';
 import { api, Post as ApiPost } from '@/services/api';
 import { Post } from '@/components/Post';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const { publicKey } = useWallet();
   const [posts, setPosts] = useState<ApiPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to recommend page
+    router.push('/recommend');
+  }, [router]);
 
   useEffect(() => {
     fetchPosts();
