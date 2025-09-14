@@ -609,8 +609,17 @@ export function TikTokFeed({
                 if (isVideo) {
                   return (
                     <video
+                      ref={(el) => {
+                        if (el) {
+                          // When this post becomes the current one, play the video
+                          if (index === currentIndex) {
+                            el.play().catch(err => console.log('Video play error:', err));
+                          } else {
+                            el.pause();
+                          }
+                        }
+                      }}
                       src={mediaUrl}
-                      autoPlay={true}
                       loop
                       playsInline
                       style={{
