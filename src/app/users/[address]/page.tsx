@@ -368,91 +368,90 @@ export default function UserProfile() {
         </div>
 
         {/* 操作按钮 */}
-        {publicKey && publicKey.toBase58() !== address && (
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            alignItems: "center",
+            marginBottom: "30px",
+          }}
+        >
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
               gap: "10px",
-              alignItems: "center",
-              marginBottom: "30px",
+              justifyContent: "center",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "center",
-              }}
-            >
-              <Button
-                type={profile.isFollowing ? "default" : "primary"}
-                onClick={handleFollow}
-                loading={followLoading}
-                style={{
-                  borderRadius: "20px",
-                  fontWeight: 600,
-                  height: "35px",
-                  padding: "0 20px",
-                  ...(profile.isFollowing
-                    ? {
-                        background: "rgba(255,255,255,0.2)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                        color: "#ffffff",
-                      }
-                    : {
-                        background:
-                          "linear-gradient(135deg, #00F2EA 0%, #EE3190 100%)",
-                        border: "none",
-                        color: "#ffffff",
-                      }),
-                }}
-              >
-                {profile.isFollowing ? "Unfollow" : "Follow"}
-              </Button>
-              <Button
-                type="primary"
-                onClick={handlePatron}
-                loading={patronLoading}
-                style={{
-                  backgroundColor: "#FFB800",
-                  borderRadius: "20px",
-                  fontWeight: 600,
-                  boxShadow: "0 4px 6px rgba(255, 184, 0, 0.2)",
-                  transition: "all 0.3s",
-                  border: "none",
-                  height: "35px",
-                  padding: "0 20px",
-                }}
-                icon={<DollarOutlined style={{ fontSize: "16px" }} />}
-              >
-                Support
-              </Button>
-            </div>
             <Button
-              type="primary"
-              onClick={() => setIsChatOpen(true)}
+              type={profile.isFollowing ? "default" : "primary"}
+              onClick={handleFollow}
+              loading={followLoading}
               style={{
-                background: "rgb(234,51,84)",
-                border: "none",
                 borderRadius: "20px",
                 fontWeight: 600,
                 height: "35px",
                 padding: "0 20px",
-                color: "#ffffff",
-                boxShadow: "0 4px 6px rgba(102, 126, 234, 0.2)",
-                transition: "all 0.3s",
+                ...(profile.isFollowing
+                  ? {
+                    background: "rgba(255,255,255,0.2)",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    color: "#ffffff",
+                  }
+                  : {
+                    background:
+                      "linear-gradient(135deg, #00F2EA 0%, #EE3190 100%)",
+                    border: "none",
+                    color: "#ffffff",
+                  }),
               }}
             >
-              AI分身对话
+              {profile.isFollowing ? "Unfollow" : "Follow"}
             </Button>
-            <UserChat
-              userAddress={profile.wallet_address}
-              isOpen={isChatOpen}
-              onClose={() => setIsChatOpen(false)}
-            />
+            <Button
+              type="primary"
+              onClick={handlePatron}
+              loading={patronLoading}
+              style={{
+                backgroundColor: "#FFB800",
+                borderRadius: "20px",
+                fontWeight: 600,
+                boxShadow: "0 4px 6px rgba(255, 184, 0, 0.2)",
+                transition: "all 0.3s",
+                border: "none",
+                height: "35px",
+                padding: "0 20px",
+              }}
+              icon={<DollarOutlined style={{ fontSize: "16px" }} />}
+            >
+              Support
+            </Button>
           </div>
-        )}
+          <Button
+            type="primary"
+            onClick={() => setIsChatOpen(true)}
+            style={{
+              background: "rgb(234,51,84)",
+              border: "none",
+              borderRadius: "20px",
+              fontWeight: 600,
+              height: "35px",
+              padding: "0 20px",
+              color: "#ffffff",
+              boxShadow: "0 4px 6px rgba(102, 126, 234, 0.2)",
+              transition: "all 0.3s",
+            }}
+          >
+            AI分身对话
+          </Button>
+          <UserChat
+            userAddress={profile.wallet_address}
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+          />
+        </div>
 
         {/* 用户简介 */}
         {profile.bio && (

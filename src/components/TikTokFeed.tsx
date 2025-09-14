@@ -610,7 +610,7 @@ export function TikTokFeed({
                   return (
                     <video
                       src={mediaUrl}
-                      autoPlay={index === currentIndex}
+                      autoPlay={true}
                       loop
                       muted
                       playsInline
