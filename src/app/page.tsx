@@ -36,7 +36,7 @@ export default function Home() {
   if (!publicKey) {
     return (
       <Card>
-        <h1>Welcome to Itrix Social</h1>
+        <h1>Welcome to aitk Social</h1>
         <p>Please connect your wallet to continue</p>
       </Card>
     );
