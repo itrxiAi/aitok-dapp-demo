@@ -612,7 +612,6 @@ export function TikTokFeed({
                       src={mediaUrl}
                       autoPlay={true}
                       loop
-                      muted
                       playsInline
                       style={{
                         width: "100%",
