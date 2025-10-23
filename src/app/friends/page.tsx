@@ -29,7 +29,7 @@ const TopNavigation = () => {
       <img
         src="/images/logo.png"
         alt="logo"
-        style={{ width: "58px", height: "22px" }}
+        style={{ width: "90px", height: "22px" }}
       />
 
       {/* 中间标题 */}
