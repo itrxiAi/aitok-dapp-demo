@@ -1,6 +1,5 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Card,
   List,
@@ -23,6 +22,7 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
+import { useWallet } from "@/hooks/useWallet";
 
 const { TextArea } = Input;
 
@@ -84,13 +84,13 @@ export function Post({ post, onUpdate }: PostProps) {
 
     try {
       const isLiked = post.likes.some(
-        (like) => like.user_address === publicKey.toBase58()
+        (like) => like.user_address === publicKey
       );
 
       if (isLiked) {
-        await api.posts.unlike(post.id, { user_address: publicKey.toBase58() });
+        await api.posts.unlike(post.id, { user_address: publicKey });
       } else {
-        await api.posts.like(post.id, { user_address: publicKey.toBase58() });
+        await api.posts.like(post.id, { user_address: publicKey });
       }
 
       onUpdate?.();
@@ -109,16 +109,16 @@ export function Post({ post, onUpdate }: PostProps) {
 
     try {
       const isCollected = post.collects.some(
-        (collect) => collect.user_address === publicKey.toBase58()
+        (collect) => collect.user_address === publicKey
       );
 
       if (isCollected) {
         await api.posts.uncollect(post.id, {
-          user_address: publicKey.toBase58(),
+          user_address: publicKey,
         });
       } else {
         await api.posts.collect(post.id, {
-          user_address: publicKey.toBase58(),
+          user_address: publicKey,
         });
       }
 
@@ -147,7 +147,7 @@ export function Post({ post, onUpdate }: PostProps) {
 
       if (!isFollowing) {
         await api.users.follow(
-          publicKey.toBase58(),
+          publicKey,
           post.author.wallet_address
         );
         message.success(
@@ -158,7 +158,7 @@ export function Post({ post, onUpdate }: PostProps) {
         setIsFollowing(true);
       } else {
         await api.users.unfollow(
-          publicKey.toBase58(),
+          publicKey,
           post.author.wallet_address
         );
         message.success(
@@ -203,7 +203,7 @@ export function Post({ post, onUpdate }: PostProps) {
     try {
       await api.posts.createComment(post.id, {
         content: values.content,
-        author_address: publicKey.toBase58(),
+        author_address: publicKey,
       });
 
       const updatedComments = await api.posts.getComments(post.id);
@@ -221,11 +221,11 @@ export function Post({ post, onUpdate }: PostProps) {
 
   const isLiked =
     publicKey &&
-    post.likes.some((like) => like.user_address === publicKey.toBase58());
+    post.likes.some((like) => like.user_address === publicKey);
   const isCollected =
     publicKey &&
     post.collects.some(
-      (collect) => collect.user_address === publicKey.toBase58()
+      (collect) => collect.user_address === publicKey
     );
 
   return (
@@ -295,7 +295,7 @@ export function Post({ post, onUpdate }: PostProps) {
               />
               {!isFollowing &&
                 publicKey &&
-                post.author?.wallet_address !== publicKey.toBase58() && (
+                post.author?.wallet_address !== publicKey && (
                   <Button
                     type="primary"
                     size="small"

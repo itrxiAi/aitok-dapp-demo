@@ -4,10 +4,10 @@ import { usePathname } from 'next/navigation';
 import { Avatar, Button, Input, List, Space, Typography, Skeleton, Card, Modal } from 'antd';
 import { UserOutlined, SendOutlined, AudioOutlined, AudioMutedOutlined } from '@ant-design/icons';
 import { useState, useRef, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '@/hooks/useWallet';
 import { api } from '@/services/api';
 import Link from 'next/link';
-import { Connection, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction } from '@solana/web3.js';
+import { ethers } from 'ethers';
 import { message } from 'antd';
 import { TrendingNews } from './TrendingNews';
 
@@ -38,7 +38,7 @@ function WhoToFollow() {
       console.log(`fetchedUsers: ${JSON.stringify(fetchedUsers)}`);
       // Filter out the current user and sort by follower count
       const filteredUsers = fetchedUsers
-        .filter(user => user.wallet_address !== publicKey?.toString())
+        .filter(user => user.wallet_address !== publicKey) // BSC publicKey is already a string
         .sort((a, b) => (b._count?.followers || 0) - (a._count?.followers || 0));
 
       setAllUsers(filteredUsers);
@@ -54,7 +54,7 @@ function WhoToFollow() {
     if (!publicKey) return;
 
     try {
-      const response = await fetch(`/api/users/${publicKey.toString()}/following`);
+      const response = await fetch(`/api/users/${publicKey}/following`);
       if (!response.ok) {
         throw new Error('Failed to fetch following');
       }
@@ -122,39 +122,40 @@ function WhoToFollow() {
 
     try {
       if (followingMap[userAddress]) {
-        await api.users.unfollow(publicKey.toBase58(), userAddress);
+        // For unfollow, we don't need a transaction, just update the API
+        await api.users.unfollow(publicKey, userAddress);
         message.success('Unfollowed successfully');
       } else {
-        // Create connection to mainnet
-        const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=5d2e4725-01df-47ba-92ef-6d6025e9d62e');
-
-        // Create transaction to send 0.0001 SOL
-        const transaction = new Transaction().add(
-          SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: new PublicKey(userAddress),
-            lamports: LAMPORTS_PER_SOL * 0.0001, // 0.0001 SOL
-          })
-        );
-
         try {
-          // Get latest blockhash
-          const { blockhash } = await connection.getLatestBlockhash();
-          transaction.recentBlockhash = blockhash;
-          transaction.feePayer = publicKey;
+          // For BSC, we'll send a small amount of BNB (0.0001) to the user as a "follow" action
+          if (!window.ethereum) {
+            throw new Error('No Ethereum provider found');
+          }
 
-          // Request signature from user
-          const signedTransaction = await (window as any).solana.signTransaction(transaction);
-
-          // Send transaction
-          const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-          await connection.confirmTransaction(signature);
-
+          // Request account access if needed
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          
+          // Create a provider
+          const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+          const signer = provider.getSigner();
+          
+          // Create and send transaction
+          const tx = {
+            to: userAddress,
+            value: ethers.utils.parseEther('0.0001') // 0.0001 BNB
+          };
+          
+          const transaction = await signer.sendTransaction(tx);
+          
+          // Wait for transaction to be mined
+          await transaction.wait();
+          
           // If transaction successful, proceed with follow
-          await api.users.follow(publicKey.toBase58(), userAddress);
+          await api.users.follow(publicKey, userAddress);
           message.success('Followed successfully');
         } catch (error) {
-          await api.users.follow(publicKey.toBase58(), userAddress);
+          // Even if transaction fails, still follow the user in our API
+          await api.users.follow(publicKey, userAddress);
           console.error('Transaction error:', error);
           message.success('Followed successfully');
         }

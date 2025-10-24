@@ -1,11 +1,11 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, Form, Input, Upload, Button, message, Checkbox } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { api } from "@/services/api";
 import { useRouter } from "next/navigation";
+import { useWallet } from "@/hooks/useWallet";
 
 const { TextArea } = Input;
 const { Dragger } = Upload;
@@ -100,7 +100,7 @@ export default function CreatePost() {
 
       // Create post using our API
       await api.posts.create({
-        author_address: publicKey.toBase58(),
+        author_address: publicKey,
         content: values.content,
         media_url: mediaUrls,
         tags: hashtags,

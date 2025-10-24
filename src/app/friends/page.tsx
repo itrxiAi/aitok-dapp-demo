@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { api, Post as ApiPost } from "@/services/api";
 import { TikTokFeed } from "@/components/TikTokFeed";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/navigation";
 import { SearchOutlined } from "@ant-design/icons";
+import { useWallet } from "@/hooks/useWallet";
 
 // 顶部导航栏组件
 const TopNavigation = () => {
@@ -68,7 +68,7 @@ export default function Friends() {
 
     try {
       setLoading(true);
-      const data = await api.users.getFriendsPosts(publicKey.toBase58());
+      const data = await api.users.getFriendsPosts(publicKey);
       setPosts(data);
     } catch (error) {
       console.error("Error fetching friends posts:", error);
