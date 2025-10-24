@@ -1,7 +1,6 @@
 import { cookieStorage, createStorage } from '@wagmi/core';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { bsc, bscTestnet } from 'wagmi/chains';
-import { AppKitNetwork } from '@reown/appkit/core';
 
 // Get projectId from https://dashboard.reown.com
 // You'll need to sign up and create a project on Reown dashboard
