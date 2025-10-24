@@ -1,6 +1,6 @@
 'use client';
 
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '@/hooks/useWallet';
 import { Card, List } from 'antd';
 import { useEffect, useState } from 'react';
 import { api, Post as ApiPost } from '@/services/api';

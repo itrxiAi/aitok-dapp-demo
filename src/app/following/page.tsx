@@ -1,12 +1,12 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Avatar, Typography, Button, message, Space, List } from "antd";
 import { UserOutlined, DownOutlined, UpOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { api } from "@/services/api";
 import { useRouter } from "next/navigation";
 import { ContentListPage } from "@/components/ContentListPage";
+import { useWallet } from "@/hooks/useWallet";
 
 const { Text } = Typography;
 
@@ -39,7 +39,7 @@ export default function Following() {
 
     try {
       const response = await fetch(
-        `/api/users/${publicKey.toBase58()}/following`
+        `/api/users/${publicKey}/following`
       );
       const data = await response.json();
       setFollowing(data);
@@ -55,7 +55,7 @@ export default function Following() {
     if (!publicKey) return;
 
     try {
-      await api.users.unfollow(publicKey.toBase58(), address);
+      await api.users.unfollow(publicKey, address);
       message.success("Unfollowed successfully");
       fetchFollowing();
     } catch (error) {

@@ -1,6 +1,5 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, Space, Button, Input, Form, message, Avatar } from "antd";
 import {
   UserOutlined,
@@ -13,6 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import { api } from "@/services/api";
 import Link from "next/link";
 import Image from "next/image";
+import { useWallet } from "@/hooks/useWallet";
 
 const { TextArea } = Input;
 
@@ -84,13 +84,13 @@ export default function PostPage() {
 
     try {
       const isLiked = post.likes.some(
-        (like) => like.user_address === publicKey.toBase58()
+        (like) => like.user_address === publicKey
       );
 
       if (isLiked) {
-        await api.posts.unlike(post.id, { user_address: publicKey.toBase58() });
+        await api.posts.unlike(post.id, { user_address: publicKey });
       } else {
-        await api.posts.like(post.id, { user_address: publicKey.toBase58() });
+        await api.posts.like(post.id, { user_address: publicKey });
       }
 
       fetchPost();
@@ -110,7 +110,7 @@ export default function PostPage() {
     try {
       await api.posts.createComment(post.id, {
         content: values.content,
-        author_address: publicKey.toBase58(),
+        author_address: publicKey,
       });
 
       const updatedComments = await api.posts.getComments(post.id);
@@ -179,7 +179,7 @@ export default function PostPage() {
 
   const isLiked =
     publicKey &&
-    post.likes.some((like) => like.user_address === publicKey.toBase58());
+    post.likes.some((like) => like.user_address === publicKey);
 
   return (
     <div style={{ minHeight: "100vh", background: "#000000" }}>

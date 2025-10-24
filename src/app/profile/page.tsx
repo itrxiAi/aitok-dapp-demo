@@ -1,6 +1,6 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@/hooks/useWallet";
 import dynamic from "next/dynamic";
 import {
   Card,
@@ -39,11 +39,8 @@ import { AddFriendsModal } from "@/components/AddFriendsModal";
 import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
 
-const WalletMultiButton = dynamic(
-  () =>
-    import("@solana/wallet-adapter-react-ui").then(
-      (mod) => mod.WalletMultiButton
-    ),
+const BscWalletButton = dynamic(
+  () => import("@/components/BscWalletButton"),
   { ssr: false }
 );
 
@@ -52,20 +49,24 @@ const { TextArea } = Input;
 
 // 自定义钱包按钮组件
 const CustomWalletButton = () => {
-  const { publicKey, disconnect } = useWallet();
+  const { publicKey, disconnect, connect, isLoading } = useWallet();
   const { walletAddress, user } = useAuth();
-  const [showWalletModal, setShowWalletModal] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = async () => {
+    console.log("Wallet action...");
+
     if (publicKey) {
-      disconnect();
+      // If connected, disconnect
+      await disconnect();
+      console.log("Disconnected");
     } else {
-      // When not connected, show the default WalletMultiButton's modal
-      const walletButton = document.querySelector(
-        ".wallet-adapter-button-trigger"
-      );
-      if (walletButton instanceof HTMLElement) {
-        walletButton.click();
+      // If not connected, connect
+      try {
+        console.log("Connecting...");
+        await connect();
+        console.log("Connected");
+      } catch (error) {
+        console.error("Connection error:", error);
       }
     }
   };
@@ -113,9 +114,24 @@ const CustomWalletButton = () => {
               : "Connect Wallet")}
         </Text>
       </div>
-      <div style={{ display: "none" }}>
-        <WalletMultiButton />
-      </div>
+      {/* Show loading state when connecting */}
+      {isLoading && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            background: "rgba(0, 0, 0, 0.7)",
+            color: "white",
+            padding: "10px 20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+          }}
+        >
+          Connecting...
+        </div>
+      )}
     </>
   );
 };
@@ -145,9 +161,11 @@ const getBase64 = (img: RcFile): Promise<string> =>
 
 // 顶部导航栏组件
 const TopNavigation = ({
+  onConnect,
   onDisconnect,
   isConnected,
 }: {
+  onConnect: () => void;
   onDisconnect: () => void;
   isConnected: boolean;
 }) => {
@@ -170,7 +188,17 @@ const TopNavigation = ({
     >
       {/* 右侧连接/断开按钮 */}
       <Button
-        onClick={onDisconnect}
+        onClick={() => {
+          console.log('TopNavigation button clicked!');
+          console.log('isConnected:', isConnected);
+          if (isConnected) {
+            console.log('Calling onDisconnect...');
+            onDisconnect();
+          } else {
+            console.log('Calling onConnect...');
+            onConnect();
+          }
+        }}
         style={{
           background: "linear-gradient(135deg, #00F2EA 0%, #EE3190 100%)",
           border: "none",
@@ -366,7 +394,7 @@ const ContentGrid = ({
 };
 
 export default function Profile() {
-  const { publicKey, disconnect } = useWallet();
+  const { publicKey, connect, disconnect } = useWallet();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -400,7 +428,8 @@ export default function Profile() {
 
     setPostsLoading(true);
     try {
-      const userAddress = publicKey.toBase58();
+      // BSC addresses are already strings, no need for toBase58()
+      const userAddress = publicKey;
       const data = await api.users.getMyPosts(userAddress);
       setPosts(data);
     } catch (error) {
@@ -436,7 +465,8 @@ export default function Profile() {
 
     setLikedPostsLoading(true);
     try {
-      const userAddress = publicKey.toBase58();
+      // BSC addresses are already strings, no need for toBase58()
+      const userAddress = publicKey;
       const data = await api.users.getLikedPosts(userAddress);
       setLikedPosts(data);
     } catch (error) {
@@ -453,7 +483,8 @@ export default function Profile() {
 
     setCollectedPostsLoading(true);
     try {
-      const userAddress = publicKey.toBase58();
+      // BSC addresses are already strings, no need for toBase58()
+      const userAddress = publicKey;
       const data = await api.users.getCollectedPosts(userAddress);
       setCollectedPosts(data);
     } catch (error) {
@@ -468,7 +499,8 @@ export default function Profile() {
     if (!publicKey) return;
 
     try {
-      const userAddress = publicKey.toBase58();
+      // BSC addresses are already strings, no need for toBase58()
+      const userAddress = publicKey;
       const data = await api.users.getProfile(userAddress);
       setProfile(data);
     } catch (error) {
@@ -536,7 +568,8 @@ export default function Profile() {
 
     try {
       console.log("Updating profile with values:", values);
-      await api.users.updateProfile(publicKey.toBase58(), values);
+      // BSC addresses are already strings, no need for toBase58()
+      await api.users.updateProfile(publicKey, values);
       message.success("Profile updated successfully");
       setEditing(false);
       fetchProfile();
@@ -552,13 +585,13 @@ export default function Profile() {
     try {
       const post = posts.find((p) => p.id === postId);
       const isLiked = post?.likes.some(
-        (like) => like.user_address === publicKey.toBase58()
+        (like) => like.user_address === publicKey
       );
 
       if (isLiked) {
-        await api.posts.unlike(postId, { user_address: publicKey.toBase58() });
+        await api.posts.unlike(postId, { user_address: publicKey });
       } else {
-        await api.posts.like(postId, { user_address: publicKey.toBase58() });
+        await api.posts.like(postId, { user_address: publicKey });
       }
 
       fetchProfile();
@@ -603,13 +636,13 @@ export default function Profile() {
       >
         {/* 顶部导航栏 */}
         <TopNavigation
+          onConnect={() => {
+            console.log('Profile (empty state): Calling connect()');
+            connect();
+          }}
           onDisconnect={() => {
-            const walletButton = document.querySelector(
-              ".wallet-adapter-button-trigger"
-            );
-            if (walletButton instanceof HTMLElement) {
-              walletButton.click();
-            }
+            console.log('Profile (empty state): Calling disconnect()');
+            disconnect();
           }}
           isConnected={false}
         />
@@ -734,7 +767,7 @@ export default function Profile() {
 
         {/* 隐藏的钱包按钮 */}
         <div style={{ display: "none" }}>
-          <WalletMultiButton />
+          <BscWalletButton />
         </div>
       </div>
     );
@@ -748,7 +781,7 @@ export default function Profile() {
   );
 
   const shortenedAddress = publicKey
-    ? `${publicKey.toBase58().slice(0, 4)}...${publicKey.toBase58().slice(-4)}`
+    ? `${publicKey.slice(0, 4)}...${publicKey.slice(-4)}`
     : "未连接钱包";
 
   // 获取当前显示的内容
@@ -768,7 +801,17 @@ export default function Profile() {
   return (
     <div style={{ height: "100vh", background: "#161722", color: "#ffffff" }}>
       {/* 顶部导航栏 */}
-      <TopNavigation onDisconnect={() => disconnect()} isConnected={true} />
+      <TopNavigation 
+        onConnect={() => {
+          console.log('Profile: Calling connect()');
+          connect();
+        }} 
+        onDisconnect={() => {
+          console.log('Profile: Calling disconnect()');
+          disconnect();
+        }} 
+        isConnected={!!publicKey} 
+      />
 
       {/* 个人资料区域 */}
       <div style={{ textAlign: "center", padding: "60px 20px 20px" }}>
@@ -823,7 +866,7 @@ export default function Profile() {
             {profile?.display_name || profile?.username || "用户昵称"}
           </div>
           <div style={{ fontSize: "14px", color: "#999" }}>
-            {publicKey?.toBase58() || "钱包地址"}
+            {publicKey || "钱包地址"}
           </div>
         </div>
 
@@ -857,7 +900,7 @@ export default function Profile() {
             onClick={() => {
               const profileUrl = `${
                 window.location.origin
-              }/users/${publicKey?.toBase58()}`;
+              }/users/${publicKey}`;
               navigator.clipboard.writeText(profileUrl);
               message.success("Profile link copied to clipboard!");
             }}
@@ -890,7 +933,7 @@ export default function Profile() {
               cursor: "pointer",
             }}
             onClick={() =>
-              router.push(`/users/${publicKey?.toBase58()}/following`)
+              router.push(`/users/${publicKey}/following`)
             }
           >
             <div style={{ fontSize: "20px", fontWeight: "bold" }}>
@@ -1132,7 +1175,7 @@ export default function Profile() {
         <AddFriendsModal
           visible={addFriendsModalVisible}
           onClose={() => setAddFriendsModalVisible(false)}
-          currentUserAddress={publicKey?.toBase58()}
+          currentUserAddress={publicKey}
         />
       )}
 

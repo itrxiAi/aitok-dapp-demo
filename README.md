@@ -1,6 +1,6 @@
 # Itrix DApp
 
-A decentralized social media application built on Solana.
+A decentralized social media application built on BSC.
 
 ## Database Setup
 

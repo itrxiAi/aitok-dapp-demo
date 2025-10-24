@@ -1,6 +1,5 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   List,
   Typography,
@@ -17,6 +16,7 @@ import { api, Notification, NotificationType } from "@/services/api";
 import { useRouter } from "next/navigation";
 import { UserOutlined, CheckOutlined, SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
+import { useWallet } from "@/hooks/useWallet";
 
 const { Text, Title } = Typography;
 
@@ -120,7 +120,7 @@ export default function Notifications() {
 
     try {
       setLoading(true);
-      const response = await api.notifications.list(publicKey.toBase58(), {
+      const response = await api.notifications.list(publicKey, {
         limit: pagination.limit,
         offset: pagination.offset,
         includeRead: true,
@@ -192,7 +192,7 @@ export default function Notifications() {
     if (!publicKey) return;
 
     try {
-      await api.notifications.deleteAll(publicKey.toBase58());
+      await api.notifications.deleteAll(publicKey);
       setNotifications([]);
       setPagination((prev) => ({ ...prev, total: 0 }));
     } catch (error) {

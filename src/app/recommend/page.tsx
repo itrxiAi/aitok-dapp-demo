@@ -5,7 +5,7 @@ import { api, Post as ApiPost } from "@/services/api";
 import { Post } from "@/components/Post";
 import { ContentListPage } from "@/components/ContentListPage";
 import { TikTokFeed } from "@/components/TikTokFeed";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@/hooks/useWallet";
 import { SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -446,7 +446,7 @@ const FollowingFeed = ({
 
     try {
       const response = await fetch(
-        `/api/users/${publicKey.toBase58()}/following`
+        `/api/users/${publicKey}/following`
       );
       const data = await response.json();
       setFollowingUsers(data);
@@ -602,7 +602,7 @@ export default function RecommendPage() {
     try {
       // For now, we're using the same API as the home page
       // In a real app, this would be a different API endpoint for recommended posts
-      const walletAddress = publicKey ? publicKey.toBase58() : undefined;
+      const walletAddress = publicKey ? publicKey : undefined;
       const fetchedPosts = await api.posts.list(walletAddress);
       setPosts(fetchedPosts);
     } catch (error) {
