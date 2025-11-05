@@ -1,6 +1,5 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
 import {
   Card,
   Avatar,
@@ -24,16 +23,11 @@ import {
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/services/api";
-import {
-  Connection,
-  PublicKey,
-  LAMPORTS_PER_SOL,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
+
 import { UserChat } from "@/components/chat/UserChat";
 import { Post } from "@/components/Post";
 import Image from "next/image";
+import { useWallet } from "@/hooks/useWallet";
 
 const { Title, Text } = Typography;
 
@@ -66,11 +60,11 @@ export default function UserProfile() {
 
   const fetchProfile = async () => {
     try {
-      const data = await api.users.getProfile(address, publicKey?.toBase58());
+      const data = await api.users.getProfile(address, publicKey);
       if (publicKey) {
         // Check if the current user is following this profile
         const isFollowing = await api.users.checkFollowing(
-          publicKey.toBase58(),
+          publicKey,
           address
         );
         data.isFollowing = isFollowing;
@@ -113,45 +107,45 @@ export default function UserProfile() {
     setFollowLoading(true);
     try {
       if (profile?.isFollowing) {
-        await api.users.unfollow(publicKey.toBase58(), address);
+        await api.users.unfollow(publicKey, address);
         message.success("Unfollowed successfully");
       } else {
         // Create connection to devnet
-        const connection = new Connection(
-          "https://mainnet.helius-rpc.com/?api-key=5d2e4725-01df-47ba-92ef-6d6025e9d62e"
-        );
+        // const connection = new Connection(
+        //   "https://mainnet.helius-rpc.com/?api-key=5d2e4725-01df-47ba-92ef-6d6025e9d62e"
+        // );
 
-        // Create transaction to send 0.0001 SOL
-        const transaction = new Transaction().add(
-          SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: new PublicKey(address),
-            lamports: LAMPORTS_PER_SOL * 0.0001, // 0.0001 SOL
-          })
-        );
+        // // Create transaction to send 0.0001 SOL
+        // const transaction = new Transaction().add(
+        //   SystemProgram.transfer({
+        //     fromPubkey: publicKey,
+        //     toPubkey: new PublicKey(address),
+        //     lamports: LAMPORTS_PER_SOL * 0.0001, // 0.0001 SOL
+        //   })
+        // );
 
         try {
           // Get latest blockhash
-          const { blockhash } = await connection.getLatestBlockhash();
-          transaction.recentBlockhash = blockhash;
-          transaction.feePayer = publicKey;
+          // const { blockhash } = await connection.getLatestBlockhash();
+          // transaction.recentBlockhash = blockhash;
+          // transaction.feePayer = publicKey;
 
-          // Request signature from user
-          const signedTransaction = await (
-            window as any
-          ).solana.signTransaction(transaction);
+          // // Request signature from user
+          // const signedTransaction = await (
+          //   window as any
+          // ).solana.signTransaction(transaction);
 
-          // Send transaction
-          const signature = await connection.sendRawTransaction(
-            signedTransaction.serialize()
-          );
-          await connection.confirmTransaction(signature);
+          // // Send transaction
+          // const signature = await connection.sendRawTransaction(
+          //   signedTransaction.serialize()
+          // );
+          // await connection.confirmTransaction(signature);
 
           // If transaction successful, proceed with follow
-          await api.users.follow(publicKey.toBase58(), address);
+          await api.users.follow(publicKey, address);
           message.success("Followed successfully");
         } catch (error) {
-          await api.users.follow(publicKey.toBase58(), address);
+          await api.users.follow(publicKey, address);
           console.error("Transaction error:", error);
           message.success("Followed successfully");
           //return;
@@ -162,11 +156,11 @@ export default function UserProfile() {
         try {
           const data = await api.users.getProfile(
             address,
-            publicKey?.toBase58()
+            publicKey
           );
           if (publicKey) {
             const isFollowing = await api.users.checkFollowing(
-              publicKey.toBase58(),
+              publicKey,
               address
             );
             data.isFollowing = isFollowing;
@@ -197,25 +191,25 @@ export default function UserProfile() {
     try {
       const post = posts.find((p) => p.id === postId);
       const isLiked = post?.likes.some(
-        (like) => like.user_address === publicKey.toBase58()
+        (like) => like.user_address === publicKey
       );
 
       if (isLiked) {
-        await api.posts.unlike(postId, { user_address: publicKey.toBase58() });
+        await api.posts.unlike(postId, { user_address: publicKey });
       } else {
-        await api.posts.like(postId, { user_address: publicKey.toBase58() });
+        await api.posts.like(postId, { user_address: publicKey });
       }
 
       const fetchProfile = async () => {
         try {
           const data = await api.users.getProfile(
             address,
-            publicKey?.toBase58()
+            publicKey
           );
           if (publicKey) {
             // Check if the current user is following this profile
             const isFollowing = await api.users.checkFollowing(
-              publicKey.toBase58(),
+              publicKey,
               address
             );
             data.isFollowing = isFollowing;
@@ -243,30 +237,30 @@ export default function UserProfile() {
 
     setPatronLoading(true);
     try {
-      const connection = new Connection(
-        "https://mainnet.helius-rpc.com/?api-key=5d2e4725-01df-47ba-92ef-6d6025e9d62e"
-      );
+      // const connection = new Connection(
+      //   "https://mainnet.helius-rpc.com/?api-key=5d2e4725-01df-47ba-92ef-6d6025e9d62e"
+      // );
 
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: new PublicKey(address),
-          lamports: LAMPORTS_PER_SOL * 0.0001,
-        })
-      );
+      // const transaction = new Transaction().add(
+      //   SystemProgram.transfer({
+      //     fromPubkey: publicKey,
+      //     toPubkey: new PublicKey(address),
+      //     lamports: LAMPORTS_PER_SOL * 0.0001,
+      //   })
+      // );
 
       try {
-        const { blockhash } = await connection.getLatestBlockhash();
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = publicKey;
+        // const { blockhash } = await connection.getLatestBlockhash();
+        // transaction.recentBlockhash = blockhash;
+        // transaction.feePayer = publicKey;
 
-        const signedTransaction = await (window as any).solana.signTransaction(
-          transaction
-        );
-        const signature = await connection.sendRawTransaction(
-          signedTransaction.serialize()
-        );
-        await connection.confirmTransaction(signature);
+        // const signedTransaction = await (window as any).solana.signTransaction(
+        //   transaction
+        // );
+        // const signature = await connection.sendRawTransaction(
+        //   signedTransaction.serialize()
+        // );
+        // await connection.confirmTransaction(signature);
 
         message.success("Thank you for supporting this user!");
       } catch (error) {

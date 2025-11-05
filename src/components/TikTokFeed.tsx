@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Post as ApiPost } from "@/services/api";
 import Image from "next/image";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { message, Modal, Input, Form } from "antd";
 import { api } from "@/services/api";
 import { useRouter } from "next/navigation";
+import { useWallet } from "@/hooks/useWallet";
 
 const { TextArea } = Input;
 
@@ -83,13 +83,13 @@ export function TikTokFeed({
 
     try {
       const isLiked = post.likes.some(
-        (like) => like.user_address === publicKey.toBase58()
+        (like) => like.user_address === publicKey
       );
 
       if (isLiked) {
-        await api.posts.unlike(post.id, { user_address: publicKey.toBase58() });
+        await api.posts.unlike(post.id, { user_address: publicKey });
       } else {
-        await api.posts.like(post.id, { user_address: publicKey.toBase58() });
+        await api.posts.like(post.id, { user_address: publicKey });
       }
 
       onUpdate?.();
@@ -109,16 +109,16 @@ export function TikTokFeed({
 
     try {
       const isCollected = (post as any).collects?.some(
-        (collect: any) => collect.user_address === publicKey.toBase58()
+        (collect: any) => collect.user_address === publicKey
       );
 
       if (isCollected) {
         await api.posts.uncollect(post.id, {
-          user_address: publicKey.toBase58(),
+          user_address: publicKey,
         });
       } else {
         await api.posts.collect(post.id, {
-          user_address: publicKey.toBase58(),
+          user_address: publicKey,
         });
       }
 
@@ -162,7 +162,7 @@ export function TikTokFeed({
     try {
       await api.posts.createComment(currentPostId, {
         content: values.content,
-        author_address: publicKey.toBase58(),
+        author_address: publicKey,
       });
 
       const updatedComments = await api.posts.getComments(currentPostId);
@@ -200,7 +200,7 @@ export function TikTokFeed({
       setFollowLoading((prev) => ({ ...prev, [authorAddress]: true }));
 
       if (!isCurrentlyFollowing) {
-        await api.users.follow(publicKey.toBase58(), authorAddress);
+        await api.users.follow(publicKey, authorAddress);
         message.success(
           `You are now following ${
             post.author.display_name || post.author.username || "this user"
@@ -208,7 +208,7 @@ export function TikTokFeed({
         );
         setFollowStates((prev) => ({ ...prev, [authorAddress]: true }));
       } else {
-        await api.users.unfollow(publicKey.toBase58(), authorAddress);
+        await api.users.unfollow(publicKey, authorAddress);
         message.success(
           `You have unfollowed ${
             post.author.display_name || post.author.username || "this user"
@@ -785,7 +785,7 @@ export function TikTokFeed({
                   const isLoading = followLoading[authorAddress] ?? false;
                   const isOwnPost =
                     publicKey &&
-                    post.author.wallet_address === publicKey.toBase58();
+                    post.author.wallet_address === publicKey;
 
                   // 按照 Post 组件的逻辑：!isFollowing && publicKey && !isOwnPost
                   if (!isCurrentlyFollowing && publicKey && !isOwnPost) {
@@ -840,7 +840,7 @@ export function TikTokFeed({
                   src={
                     publicKey &&
                     post.likes.some(
-                      (like) => like.user_address === publicKey.toBase58()
+                      (like) => like.user_address === publicKey
                     )
                       ? "/images/like-s.png"
                       : "/images/like.png"
@@ -923,7 +923,7 @@ export function TikTokFeed({
                     publicKey &&
                     (post as any).collects?.some(
                       (collect: any) =>
-                        collect.user_address === publicKey.toBase58()
+                        collect.user_address === publicKey
                     )
                       ? "/images/mark-s.png"
                       : "/images/mark.png"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '@/hooks/useWallet';
 import { Input, Tabs, List, Card, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { api } from '@/services/api';
@@ -32,7 +32,8 @@ export default function Explore() {
       const url = new URL('/api/search', window.location.origin);
       url.searchParams.set('q', query);
       if (publicKey) {
-        url.searchParams.set('requestingUserAddress', publicKey.toBase58());
+        // BSC addresses are already strings, no need for toBase58()
+        url.searchParams.set('requestingUserAddress', publicKey);
       }
       const response = await fetch(url);
       const data = await response.json();

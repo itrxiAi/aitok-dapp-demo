@@ -1,31 +1,19 @@
 'use client';
 
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { ConnectionProvider, WalletProvider as SolanaWalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
-import { useMemo } from 'react';
+import { ReactNode } from 'react';
+import { WagmiConfig } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { config } from '@/config/wagmiConfig';
 
-require('@solana/wallet-adapter-react-ui/styles.css');
-
-export function WalletProvider({ children }: { children: React.ReactNode }) {
-  const network = WalletAdapterNetwork.Mainnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-  
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ],
-    []
-  );
+export function WalletProvider({ children }: { children: ReactNode }) {
+  // Create a client for react-query
+  const queryClient = new QueryClient();
 
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <SolanaWalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
-      </SolanaWalletProvider>
-    </ConnectionProvider>
+    <QueryClientProvider client={queryClient}>
+      <WagmiConfig config={config}>
+        {children}
+      </WagmiConfig>
+    </QueryClientProvider>
   );
 }
