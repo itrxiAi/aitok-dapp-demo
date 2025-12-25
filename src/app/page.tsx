@@ -12,6 +12,14 @@ export default function Home() {
   const [posts, setPosts] = useState<ApiPost[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  
+  // Simple whitelist of allowed public keys
+  const whitelist = [
+    // Add whitelisted public keys here
+    '11111111111111111111111111111111',
+    '22222222222222222222222222222222',
+    // Add more as needed
+  ];
 
   useEffect(() => {
     // Redirect to recommend page
@@ -38,6 +46,17 @@ export default function Home() {
       <Card>
         <h1>Welcome to TwinX Social</h1>
         <p>Please connect your wallet to continue</p>
+      </Card>
+    );
+  }
+  
+  // Check if the connected wallet is in the whitelist
+  if (!whitelist.includes(publicKey)) {
+    return (
+      <Card>
+        <h1>Access Denied</h1>
+        <p>Your wallet is not whitelisted for this application</p>
+        <p>Your public key: {publicKey}</p>
       </Card>
     );
   }

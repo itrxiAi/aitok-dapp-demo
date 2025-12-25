@@ -438,7 +438,7 @@ export default function UserProfile() {
               transition: "all 0.3s",
             }}
           >
-            AI分身对话
+            硅基生命交互
           </Button>
           <UserChat
             userAddress={profile.wallet_address}
