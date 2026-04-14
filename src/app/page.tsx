@@ -51,15 +51,15 @@ export default function Home() {
   }
   
   // Check if the connected wallet is in the whitelist
-  if (!whitelist.includes(publicKey)) {
-    return (
-      <Card>
-        <h1>Access Denied</h1>
-        <p>Your wallet is not whitelisted for this application</p>
-        <p>Your public key: {publicKey}</p>
-      </Card>
-    );
-  }
+  // if (!whitelist.includes(publicKey)) {
+  //   return (
+  //     <Card>
+  //       <h1>Access Denied</h1>
+  //       <p>Your wallet is not whitelisted for this application</p>
+  //       <p>Your public key: {publicKey}</p>
+  //     </Card>
+  //   );
+  // }
 
   return (
     <div style={{ width: '100%', padding: '0 8px' }}>

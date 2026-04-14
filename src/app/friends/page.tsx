@@ -26,11 +26,11 @@ const TopNavigation = () => {
       }}
     >
       {/* 左侧 Logo */}
-      <img
+      {/* <img
         src="/images/logo.png"
         alt="logo"
         style={{ width: "90px", height: "22px" }}
-      />
+      /> */}
 
       {/* 中间标题 */}
       <div

@@ -80,7 +80,7 @@ const TopNavigation = ({
         <img
           src="/images/logo.png"
           alt="logo"
-          style={{ width: "90px", height: "22px" }}
+          style={{ width: "40px", height: "40px", marginLeft: "8px" }}
         />
 
         {/* 中间 Tab 区域 */}
@@ -632,10 +632,10 @@ function RecommendPageContent({
   whitelist: string[];
 }) {
   // Check if the connected wallet is in the whitelist (case-insensitive)
-  const isWhitelisted = publicKey && whitelist.some(address => 
-    address.toLowerCase() === publicKey.toLowerCase()
-  );
-  //const isWhitelisted = true
+  // const isWhitelisted = publicKey && whitelist.some(address => 
+  //   address.toLowerCase() === publicKey.toLowerCase()
+  // );
+  const isWhitelisted = true
   
   if (!publicKey) {
     return (
