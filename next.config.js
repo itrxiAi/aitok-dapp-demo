@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['localhost', 'demo.twinx.life'],
+    domains: ['localhost', 'demo.hak.life'],
   },
   api: {
     bodyParser: {

@@ -61,8 +61,8 @@ export const UserChat = ({ userAddress, isOpen = false, onClose }: UserChatProps
         body: JSON.stringify({
           replica_id: "r89d84ea6160",
           persona_id: "p47ed2cfedd5",
-          conversation_name: "A Meeting with twinx",
-          conversational_context: "twinx is an ai social platform, you are assistant of this platform, you can answer user's question about twinx, and help user to use twinx.",
+          conversation_name: "A Meeting with hak",
+          conversational_context: "hak is an ai social platform, you are assistant of this platform, you can answer user's question about hak, and help user to use hak.",
           properties: {
             "language": "chinese"
           }

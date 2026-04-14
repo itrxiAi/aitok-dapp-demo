@@ -44,7 +44,7 @@ export default function Home() {
   if (!publicKey) {
     return (
       <Card>
-        <h1>Welcome to TwinX Social</h1>
+        <h1>Welcome to hak Social</h1>
         <p>Please connect your wallet to continue</p>
       </Card>
     );
