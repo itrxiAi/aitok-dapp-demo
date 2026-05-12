@@ -423,23 +423,48 @@ export default function UserProfile() {
               Support
             </Button>
           </div>
-          <Button
-            type="primary"
-            onClick={() => setIsChatOpen(true)}
+          <div
             style={{
-              background: "rgb(234,51,84)",
-              border: "none",
-              borderRadius: "20px",
-              fontWeight: 600,
-              height: "35px",
-              padding: "0 20px",
-              color: "#ffffff",
-              boxShadow: "0 4px 6px rgba(102, 126, 234, 0.2)",
-              transition: "all 0.3s",
+              display: "flex",
+              gap: "10px",
+              justifyContent: "center",
             }}
           >
-            硅基生命交互
-          </Button>
+            <Button
+              type="primary"
+              onClick={() => setIsChatOpen(true)}
+              style={{
+                background: "rgb(234,51,84)",
+                border: "none",
+                borderRadius: "20px",
+                fontWeight: 600,
+                height: "35px",
+                padding: "0 20px",
+                color: "#ffffff",
+                boxShadow: "0 4px 6px rgba(102, 126, 234, 0.2)",
+                transition: "all 0.3s",
+              }}
+            >
+              硅基生命交互
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => router.push(`/chat/${profile.wallet_address}`)}
+              style={{
+                background: "#07c160",
+                border: "none",
+                borderRadius: "20px",
+                fontWeight: 600,
+                height: "35px",
+                padding: "0 20px",
+                color: "#ffffff",
+                boxShadow: "0 4px 6px rgba(7, 193, 96, 0.2)",
+                transition: "all 0.3s",
+              }}
+            >
+              💬 聊天
+            </Button>
+          </div>
           <UserChat
             userAddress={profile.wallet_address}
             isOpen={isChatOpen}

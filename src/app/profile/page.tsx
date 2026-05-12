@@ -28,6 +28,7 @@ import {
   UserAddOutlined,
   ShareAltOutlined,
   UserAddOutlined as AddUserOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { Post } from "@/components/Post";
 import { useEffect, useState } from "react";
@@ -877,8 +878,24 @@ export default function Profile() {
             gap: "10px",
             justifyContent: "center",
             marginBottom: "30px",
+            flexWrap: "wrap",
           }}
         >
+          <Button
+            type="primary"
+            icon={<MessageOutlined />}
+            onClick={() => router.push("/chats")}
+            style={{
+              background: "#07c160",
+              border: "none",
+              borderRadius: "20px",
+              color: "white",
+              height: "35px",
+              padding: "0 20px",
+            }}
+          >
+            Messages
+          </Button>
           <Button
             type="primary"
             icon={<UserAddOutlined />}

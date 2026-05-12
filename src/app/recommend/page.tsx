@@ -6,7 +6,7 @@ import { Post } from "@/components/Post";
 import { ContentListPage } from "@/components/ContentListPage";
 import { TikTokFeed } from "@/components/TikTokFeed";
 import { useWallet } from "@/hooks/useWallet";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, MessageOutlined } from "@ant-design/icons";
 import { Card } from "antd";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -770,6 +770,8 @@ export default function RecommendPage() {
     );
   }
   
+  
+
   // After client-side hydration, render the full content
   return (
     <RecommendPageContent
