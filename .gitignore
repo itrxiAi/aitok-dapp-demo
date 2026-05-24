@@ -2,3 +2,5 @@ node_modules
 .next
 certificates
 .env
+app.pid
+nohup.out
