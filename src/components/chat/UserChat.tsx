@@ -59,8 +59,8 @@ export const UserChat = ({ userAddress, isOpen = false, onClose }: UserChatProps
           'x-api-key': apiKey,
         },
         body: JSON.stringify({
-          replica_id: "r89d84ea6160",
-          persona_id: "p47ed2cfedd5",
+          replica_id: "r1a4e22fa0d9",
+          persona_id: "pe2e8f94fbe2",
           conversation_name: "A Meeting with hak",
           conversational_context: "hak is an ai social platform, you are assistant of this platform, you can answer user's question about hak, and help user to use hak.",
           properties: {
